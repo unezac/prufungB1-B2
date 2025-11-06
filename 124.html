@@ -1,0 +1,801 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Lesen Teil 3</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<!-- Font Awesome for Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+    :root {
+      --primary-color: #3498db; /* A slightly more vibrant blue */
+      --secondary-color: #2ecc71; /* Green for success */
+      --danger-color: #e74c3c; /* Red for error */
+      --light-bg: #ecf0f1;
+      --dark-text: #2c3e50;
+      --light-text: #ffffff;
+      --border-radius: 10px;
+      --box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      --box-shadow-hover: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark-text);
+      animation: fadeInPage 0.8s ease-out;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      padding: 20px 25px;
+      margin-bottom: 25px;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-size: 26px;
+      font-weight: 600;
+      box-shadow: var(--box-shadow);
+      letter-spacing: 0.5px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @media(min-width: 768px) {
+      .container {
+        flex-direction: row;
+      }
+    }
+
+    .left-column, .right-column {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .quiz-scroll-container, .right-column-content {
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: var(--box-shadow);
+      max-height: 60vh; /* Adjusted for better viewport fit */
+      overflow-y: auto;
+      /* Custom scrollbar styling */
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) var(--light-bg);
+    }
+
+    /* Style for .right-column-content when being dragged over */
+    .right-column-content.drag-over {
+        background-color: #eef8ff; /* Same as .drop-target.drag-over */
+        border: 2px dashed var(--primary-color); /* Add a border to indicate it's a drop zone */
+    }
+
+
+    .quiz-scroll-container::-webkit-scrollbar,
+    .right-column-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    .quiz-scroll-container::-webkit-scrollbar-track,
+    .right-column-content::-webkit-scrollbar-track {
+      background: var(--light-bg);
+      border-radius: var(--border-radius);
+    }
+    .quiz-scroll-container::-webkit-scrollbar-thumb,
+    .right-column-content::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: var(--border-radius);
+      border: 2px solid var(--light-bg);
+    }
+
+
+    .question-box {
+      border: 1px solid #bdc3c7;
+      border-left: 5px solid var(--primary-color);
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #fdfdfd; /* Slightly off-white */
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .question-box:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .question-text {
+      font-size: 0.9em;
+      color: #7f8c8d;
+      margin-top: 10px;
+    }
+
+    .drop-target {
+      background-color: #f9f9f9;
+      padding: 12px;
+      margin-bottom: 10px; /* Space between drop target and question text */
+      border: 2px dashed #cccccc;
+      min-height: 45px;
+      border-radius: 8px;
+      text-align: center;
+      transition: background-color 0.3s, border-color 0.3s;
+      display: flex; /* To center placeholder and dropped item */
+      align-items: center;
+      justify-content: center;
+      position: relative; /* For feedback icons */
+    }
+    .drop-target.empty-drop-target::before {
+      content: "Hier Antwort ablegen";
+      color: #aaa;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+    .drop-target:not(.empty-drop-target)::before {
+      content: ""; /* Clear placeholder when not empty */
+    }
+
+    .drop-target:hover, .drop-target.drag-over {
+      background-color: #eef8ff;
+      border-color: var(--primary-color);
+    }
+
+    .draggable {
+      background-color: #e0e0e0;
+      color: var(--dark-text);
+      margin: 10px 0;
+      padding: 12px 15px;
+      border-radius: 8px;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+      font-size: 0.95em;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .draggable:hover {
+      background-color: #d0d0d0;
+      transform: translateX(3px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .draggable.selected {
+      outline: 2px solid var(--primary-color);
+      box-shadow: 0 0 0 3px var(--primary-color_alpha, rgba(52, 152, 219, 0.3));
+      background-color: #cce7ff;
+    }
+    .draggable.dragging {
+      opacity: 0.6;
+      transform: scale(0.95);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      cursor: grabbing;
+    }
+
+    /* Feedback styling for drop targets */
+    .drop-target.correct {
+      background-color: #e8f5e9; /* Light green */
+      border: 2px solid var(--secondary-color) !important;
+    }
+    .drop-target.correct::after {
+      content: "\f00c"; /* Font Awesome check icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--secondary-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+
+    .drop-target.incorrect {
+      background-color: #ffebee; /* Light red */
+      border: 2px solid var(--danger-color) !important;
+    }
+    .drop-target.incorrect::after {
+      content: "\f00d"; /* Font Awesome times icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--danger-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+    /* Ensure dropped draggable text is visible over feedback */
+    .drop-target .draggable {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      width: calc(100% - 30px); /* Adjust width to make space for icon */
+      padding-right: 35px; /* Space for the potential icon */
+      box-sizing: border-box;
+    }
+    .drop-target.correct .draggable { background-color: var(--secondary-color); }
+    .drop-target.incorrect .draggable { background-color: var(--danger-color); }
+
+
+    .wrong-flag {
+      margin-right: 10px;
+      accent-color: var(--danger-color);
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    .button-container {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .quiz-button {
+      padding: 12px 25px;
+      border: none;
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--box-shadow);
+    }
+    .quiz-button:hover {
+      background-color: #2980b9; /* Darker shade of primary */
+      transform: translateY(-2px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .quiz-button:active {
+      transform: translateY(0px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .quiz-button.secondary {
+      background-color: #7f8c8d; /* A neutral secondary color */
+    }
+    .quiz-button.secondary:hover {
+      background-color: #6c7a89;
+    }
+
+    #result {
+      text-align: center;
+      margin-top: 25px;
+      padding: 15px;
+      font-size: 1.1em;
+      font-weight: 500;
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    #result .correct-count { color: var(--secondary-color); }
+    #result .total-count { color: var(--primary-color); }
+    #result .marked-wrong-count { color: var(--danger-color); }
+
+    #warningBox {
+  display: none;
+  position: fixed;
+  top: 20px;                  
+  left: 50%;                  
+  transform: translateX(-50%);
+  background: #f81d1d;
+  color: #ffffff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 9999;
+}
+
+  </style>
+</head>
+<body>
+<div class="header">Lesen Teil 3: Tierdokumentationen </div>
+<div class="container">
+<div class="left-column">
+<div class="quiz-scroll-container">
+<!-- Questions A-->
+<div class="question-box" data-correct="Ihr Sohn wird nächste Woche zehn Jahre alt. Sie möchten ihn mit einer besonderen Feier überraschen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Auf den Spuren der Wildkatze</h4>
+<p>Im Wildkatzendorf Hütscheroda, am Nationalpark Hainich gediegen, erfahren Sie alles über die scheuen Tiere. Hautnah beobachten können Sie sie in der Schauanlage "Wildkatzenlichtung". Hier wird auf Informationstafeln auch das „Rettungsnetz für die Wildkatze“ vorgestellt, eines der größten Naturschutzprojekte Europas. Täglich finden Schaufütterungen statt, für die man sich telefonisch anmelden kann. Für die Kleinen, haben wir ein spannendes Angebot: Das Wildkatzendorf richtet Kindergeburtstage mit einem bunten Programm aus und bietet spezielle Kinderführungen an.</p>
+<h4>Öffnungszeiten: täglich von 10 bis 18 Uhr.</h4>
+</div>
+</div>
+<!-- Questions B-->
+<div class="question-box" data-correct="Sie suchen ein Geschenk für einen Freund, der sich für Kunst interessiert.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Ausstellung im Park schon zum dritten Mal stellen am Pfingst-Wochenende Künstler aus der Region im Kurpark Bad Homburg ihre Exponate aus. Gezeigt werden Zeichnungen, Keramik, Schmuck, Textilarbeiten sowie zahlreiche Holzskulpturen. Sie können mit den Künstlern ins Gespräch kommen und ihnen beim Arbeiten vor Ort über die Schulter blicken! Einen selbst gestalteten Bildband mit Werken der ausstellenden Künstler erhalten Sie in der Buchhandlung am Park und der Tourist Information für 30 €.</p>
+<h4>Öffnungszeiten: 31. Mai und 1. Juni von 11 bis 19 Uhr.</h4>
+<h4>Der Eintritt ist frei!</h4>
+</div>
+</div>
+<!-- Questions C-->
+<div class="question-box" data-correct="Ein Bekannter interessiert sich für Tierdokumentationen und würde gerne wissen, wie solche Filme entstehen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Am 1. August zeigen wir den 90-minütigen Film „Der Natur auf der Spur“. Dieser begleitet fünf der besten und erfolgreichsten Tierfilmer der Welt auf ihren Reisen rund um den Globus. Sie alle versuchen, vor beeindruckenden Naturkulissen außergewöhnliche Tieraufnahmen einzufangen. Die Leidenschaft für ihre Filme lässt die Filmemacher große Anstrengungen und Gefahren in Kauf nehmen. In dem Film erfahren Sie nicht nur, wie Tierfilmer arbeiten, sondern auch, welche technische Ausstattung sie einsetzen und wie die Dreharbeiten vorbereitet werden.</p>
+<h4>Filmabend der VHS Buchholz, 1.8., Beginn: 19 Uhr Eintritt: 5 €.</h4>
+</div>
+</div>
+<!-- Questions D-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Entspannte Sommernächte Genießen Sie sechs Tage Filmvergnügen unter dem Sternenhimmel, in bequemen Liegestühlen vor einer nächtlichen Naturkulisse. Besuchen Sie unser Open-Air-Filmfestival mitten im Wald: von Montag, 17.08., bis Samstag, 22.08. im Waldpark Schlosshöfen. Wir präsentieren Ihnen Komödien, Science-Fiction und Abenteuerfilme für Erwachsene und Kinder ab 12 Jahren. Das Filmprogramm erhalten Sie an allen Informationsstellen der Stadt Schlosshöfen und im City-Kino. </p>
+<h4>Eintritt: 12 €, ermäßigt 7 €.</h4>
+</div>
+</div>
+<!-- Questions E-->
+<div class="question-box" data-correct="Ihr siebenjähriger Neffe liebt Phantasievolle Geschichten. Sie wollen nachmittags etwas mit ihm unternehmen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Schon lange lebt Kaninchen Hoppi mit seiner Familie und vielen Freunden auf der Sonnenwiese. Doch eines Tages kauft der reiche Herr Großkopf die Wiese und will aus ihr einen Golfplatz machen... Müssen die Kaninchen sich nun eine neue Heimat suchen? So schnell lassen sie sich jedenfalls nicht verjagen. Hoppi schmiedet einen Plan, damit die Kaninchen ihr Zuhause behalten können. „Hoppi gibt nicht auf“ ist ein Animationsfilm mit liebenswerten tierischen Helden, vielen originellen Ideen und märchenhaften Abenteuern für Kinder ab 6 Jahren.</p>
+<h4>Stadtkino, täglich um 15 Uhr.</h4>
+</div>
+</div>
+<!-- Questions F-->
+<div class="question-box" data-correct="Ihre zehnjährige Tochter zeichnet viel und möchte ihre Fähigkeiten weiter verbessern.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Du bist gern kreativ und möchtest professionelle Mal- und Zeichentechniken erlernen? Dann haben wir genau das richtige Angebot für dich: „Junge Künstler“ - unser regelmäßiger Kurs für Nachwuchskünstler ab 10 Jahren. In einer kleinen Gruppe könnt ihr gemeinsam zeichnen und malen. Dozentin Rebecca Kling ist freischaffende Künstlerin und leitet Kreativkurse für Kinder und Jugendliche. Kurszeiten: jeden Dienstag von 14 bis 16 Uhr Kunstatelier Rebecca Kling, Pestalozzistr. 53, 50767 Köln</p>
+<h4>Anmeldung und Infos: rebecca@kunstatelier-kling.net</h4>
+</div>
+</div>
+<!-- Questions G-->
+<div class="question-box" data-correct="Ihr Onkel möchte sich eine Ausstellung mit Gemälden ansehen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Mit einem scharfen Blick fürs Detail gestaltete der deutsch-baltische Maler Jürgen Freiherr v. Wolffs hausen seine Landschafts- und Tierbilder. Seine Liebe zur Natur, seine außergewöhnliche Beobachtungsgabe und seine präzise Maltechnik verleihen seinen Werken einen ganz besonderen Reiz. Sein Entdeckerdrang führte ihn u. a. nach Äthiopien. Die Ausstellung „Natur im Porträt“ präsentiert die Werke des Malers und seine Biographie und gibt außerdem naturkundliche Informationen.</p>
+<h4>DSZ Sprachzentrum: Museum Lüneburg, 19. Februar bis 10. Juni Eintritt 3 €.</h4>
+</div>
+</div>
+<!-- Questions H-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Spiel, Spaß, Nervenkitzel</h4>
+<p>Für alle Kinder und Jugendliche, die am Ende der Ferien noch etwas erleben wollen. Sommerfest im Wildpark + Live-Musik Bogenschießen, Axtwerfen Baumklettern bis auf 20 Meter Höhe Seilrutsche für Kinder Riesenschaukel Wettsägen Kräuterbrot backen Basteln für Kinder und noch vieles mehr! Wildpark Rittersbach 12. und 13. September, von 10 bis 17 Uhr.</p>
+</div>
+</div>
+<!-- Questions I-->
+<div class="question-box" data-correct="Ihr 16-jährige Nichte interessiert sich für heimische Tierwelt und würde sich gerne einen Film ansehen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Noch nicht lange ist es her, dass Wildkatzen in Europa weitverbreitet waren. Heute sind sie fast überall verschwunden. Doch es gibt sie noch, auch wenn man sie nur selten zu Gesicht bekommt. Die Wildkatze in unseren Wäldern geht der Frage nach, ob das Tier bei uns überhaupt wieder heimisch werden kann. Hat es überhaupt eine Chance in unserer dicht besiedelten Landschaft? Und leben in unseren Wäldern noch echte Wildkatzen oder vielleicht nur verwilderte Hauskatzen? Denn äußerlich unterscheidet sich die Europäische Wildkatze kaum von einer getigerten Hauskatze. Der Film berichtet außerdem über ein Projekt zur Rettung der Wildkatze. Am 10.5. zeigen wir die Dokumentation in unserer Reihe „Filmabende im Rathaus“ um 19 Uhr.</p>
+</div>
+</div>
+<!-- Questions J-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>In der Dauerausstellung „Wege in die Natur“ erfahren Sie alles über den Nationalpark Bayerischer Wald, eine der größten zusammenhängenden Waldflächen Europas. Warum ist der Wald wichtig für uns? Und wer oder was lebt dort eigentlich? Über all das und noch viel mehr bekommen die Besucher beim Rundgang Informationen. In unserem Kino präsentieren wir außerdem ein abwechslungsreiches Filmprogramm.</p>
+<h4>Ort: Besucherzentrum Nationalpark Bayerischer Wald Öffnungszeiten: täglich von 9 bis 17 Uhr Der Eintritt ist frei.</h4>
+</div>
+</div>
+<!-- Questions K-->
+<div class="question-box" data-correct="Sie würden gerne abends etwas mit Freunden draußen unternehmen und dabei sportlich aktiv sein.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Heiße Rhythmen und kühle Drinks Am Samstag, dem 3. August, erwartet Sie im Waldschwimmbad Hainichen bei Rock am Pool ein Feuerwerk aus Musik und Unterhaltung. Einlass zum Konzert ist ab 18:30 Uhr. Die Bands „Lion Poem“ und „Cosmos 1“ heizen den Besuchern ordentlich ein. Das Konzert endet um 0:30 Uhr. Bis 23 Uhr können die Besucher baden oder Beach-Volleyball spielen. Das Jugendzentrum Hainichen hat ein Programm für Jugendliche mit Lagerfeuer und Spielen vorbereitet. Für Essen und Getränke zu moderaten Preisen ist gesorgt</p>
+<h4>Die Eintrittspreise: Erwachsene 8€ Kinder und Jugendliche von 7 bis 14 Jahren 6€.</h4>
+</div>
+</div>
+<!-- Questions L-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Zeichenschule für Kinder Vom Kreis zum Schaf, vom Strich zum Krokodil: Mit Björn Henkels Buch „Kinder zeichnen Tiere“ lernen die Kleinen, Schritt für Schritt ihre Lieblingstiere zu zeichnen. Aus einfachen Grundelementen entstehen lustige Tierschaf, Katze und Wellensittich, Igel, Biber, Eichhörnchen und Waschbär. Erfolg und Spaß sind garantiert. Björn Henkel zeigt, wie man den Pinsel oder einen Stift halten kann. Nach seinem Studium der Kunstgeschichte lebt er heute als selbständiger Autor und Illustrator in Bochum. Das Buch ist geeignet für Kinder zwischen 4 und 6 Jahren.</p>
+<h4>Broschiert, 8 €.</h4>
+</div>
+</div>
+</div>
+</div>
+<div class="right-column">
+<!-- MODIFIED: Added ondragover and ondrop to make this a droppable area -->
+<div class="right-column-content" onclick="clearSelected()" ondragover="allowDrop(event)" ondrop="dropOnAnswersContainer(event)">
+<!-- Answers -->
+<div class="draggable" draggable="true" id="a1" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ein Bekannter interessiert sich für Tierdokumentationen und würde gerne wissen, wie solche Filme entstehen.
+      </div>
+<div class="draggable" draggable="true" id="a2" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Eine Bekannte würde gerne gemeinsam mit einer Gruppe im Wald wandern gehen.
+      </div>
+<div class="draggable" draggable="true" id="a3" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihr Onkel möchte sich eine Ausstellung mit Gemälden ansehen.
+      </div>
+<div class="draggable" draggable="true" id="a4" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihr siebenjähriger Neffe liebt Phantasievolle Geschichten. Sie wollen nachmittags etwas mit ihm unternehmen. 
+      </div>
+<div class="draggable" draggable="true" id="a5" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihr Sohn wird nächste Woche zehn Jahre alt. Sie möchten ihn mit einer besonderen Feier überraschen.
+      </div>
+<div class="draggable" draggable="true" id="a6" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihr 16-jährige Nichte interessiert sich für heimische Tierwelt und würde sich gerne einen Film ansehen. 
+      </div>
+<div class="draggable" draggable="true" id="a7" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihre zehnjährige Tochter zeichnet viel und möchte ihre Fähigkeiten weiter verbessern. 
+      </div>
+<div class="draggable" draggable="true" id="a8" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie möchten einen Vortrag über bedrohte Tiere und Naturschutz besuchen.
+      </div>
+<div class="draggable" draggable="true" id="a9" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie suchen ein Geschenk für einen Freund, der sich für Kunst interessiert. 
+      </div>
+<div class="draggable" draggable="true" id="a10" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie würden gerne abends etwas mit Freunden draußen unternehmen und dabei sportlich aktiv sein.
+      </div>
+</div>
+</div>
+</div>
+<div class="button-container">
+<button class="quiz-button" id="submitQuizButton">
+<i class="fas fa-paper-plane"></i> Abschicken
+    </button>
+<button class="quiz-button secondary" id="resetQuizButton">
+<i class="fas fa-redo"></i> Zurücksetzen
+    </button>
+<!-- Changed to <a> tag for navigation, href to a generic "index.html" or "#" -->
+<a class="quiz-button secondary" href="/index2" id="homeButton" role="button">
+<i class="fas fa-home"></i> Startseite
+    </a>
+</div>
+<div id="result"></div>
+<script>
+  let selectedAnswer = null;
+  const rightColumnContent = document.querySelector(".right-column-content");
+  const originalAnswerOrder = Array.from(rightColumnContent.querySelectorAll('.draggable')); // Store initial order for reset
+
+  // MODIFIED: allowDrop to correctly identify parent droppable container
+  function allowDrop(ev) {
+    ev.preventDefault();
+    let droppableContainer = ev.target;
+    // Traverse up to find the actual droppable container (.drop-target or .right-column-content)
+    while (droppableContainer && droppableContainer !== document.body &&
+           !droppableContainer.classList.contains("drop-target") &&
+           !droppableContainer.classList.contains("right-column-content")) {
+        droppableContainer = droppableContainer.parentElement;
+    }
+
+    if (droppableContainer && (droppableContainer.classList.contains("drop-target") || droppableContainer.classList.contains("right-column-content"))) {
+        droppableContainer.classList.add("drag-over");
+    }
+  }
+
+  function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+    ev.target.classList.add("dragging");
+  }
+
+  document.addEventListener('dragleave', function(event) {
+    if (event.target.classList && (event.target.classList.contains("drop-target") || event.target.classList.contains("right-column-content"))) {
+        if (!event.target.contains(event.relatedTarget) && event.target !== event.relatedTarget) {
+             event.target.classList.remove("drag-over");
+        } else if (event.relatedTarget === null) { 
+            event.target.classList.remove("drag-over");
+        }
+    }
+  }, false);
+  
+  document.addEventListener('dragend', function(event) {
+    if (event.target.classList && event.target.classList.contains('draggable')) {
+      event.target.classList.remove('dragging');
+    }
+    document.querySelectorAll('.drop-target.drag-over, .right-column-content.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+  });
+
+  // MODIFIED: drop function for question slots
+  function drop(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    let dropTarget = ev.target;
+
+    while (dropTarget && !dropTarget.classList.contains("drop-target")) {
+        dropTarget = dropTarget.parentElement;
+    }
+    
+    if (!dropTarget || !draggedEl) return;
+
+    dropTarget.classList.remove("drag-over");
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; 
+
+    const currentAnswerInTarget = dropTarget.querySelector(".draggable");
+    if (currentAnswerInTarget && currentAnswerInTarget !== draggedEl) {
+      rightColumnContent.appendChild(currentAnswerInTarget);
+      showCheckbox(currentAnswerInTarget);
+    }
+    
+    dropTarget.innerHTML = ""; 
+    dropTarget.appendChild(draggedEl);
+    hideCheckbox(draggedEl);
+    updateDropTargetState(dropTarget);
+
+    if (originalParentOfDraggedEl &&
+        originalParentOfDraggedEl.classList.contains("drop-target") &&
+        originalParentOfDraggedEl !== dropTarget) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+  // NEW: Function to handle drops onto the answers container
+  function dropOnAnswersContainer(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    const answersContainer = ev.currentTarget; 
+
+    if (!draggedEl || !answersContainer) return;
+
+    answersContainer.classList.remove("drag-over");
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; 
+
+    answersContainer.appendChild(draggedEl);
+    showCheckbox(draggedEl);
+
+    if (originalParentOfDraggedEl && originalParentOfDraggedEl.classList.contains("drop-target")) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+
+  function hideCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "none";
+  }
+
+  function showCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "inline-block";
+  }
+
+  function selectAnswer(el, event) {
+    event.stopPropagation(); 
+    if (selectedAnswer === el) { 
+      el.classList.remove("selected");
+      selectedAnswer = null;
+    } else {
+      if (selectedAnswer) selectedAnswer.classList.remove("selected");
+      selectedAnswer = el;
+      el.classList.add("selected");
+    }
+  }
+
+  // MODIFIED: clickDrop function
+  function clickDrop(targetDropzone) {
+    if (selectedAnswer) {
+      const originalParentOfSelectedAnswer = selectedAnswer.parentElement;
+
+      const currentAnswerInDropzone = targetDropzone.querySelector(".draggable");
+      if (currentAnswerInDropzone && currentAnswerInDropzone !== selectedAnswer) {
+        rightColumnContent.appendChild(currentAnswerInDropzone);
+        showCheckbox(currentAnswerInDropzone);
+      }
+      
+      targetDropzone.innerHTML = ""; 
+      targetDropzone.appendChild(selectedAnswer);
+      hideCheckbox(selectedAnswer);
+      updateDropTargetState(targetDropzone);
+
+      if (originalParentOfSelectedAnswer &&
+          originalParentOfSelectedAnswer.classList.contains("drop-target") &&
+          originalParentOfSelectedAnswer !== targetDropzone) {
+          updateDropTargetState(originalParentOfSelectedAnswer);
+      }
+
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function clearSelected() {
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function updateDropTargetState(dropTarget) {
+    if (!dropTarget || !dropTarget.classList.contains('drop-target')) return;
+    
+    if (dropTarget.querySelector(".draggable")) {
+      dropTarget.classList.remove("empty-drop-target");
+    } else {
+      dropTarget.classList.add("empty-drop-target");
+    }
+  }
+
+  function getDraggableText(draggableElement) {
+    const clone = draggableElement.cloneNode(true);
+    const checkbox = clone.querySelector('.wrong-flag');
+    if (checkbox) {
+        checkbox.remove();
+    }
+    return clone.textContent.trim();
+  }
+
+  function submitQuiz() {
+    let total = 0, correct = 0;
+    document.querySelectorAll('.question-box').forEach((box) => {
+      total++;
+      const correctAnswerText = box.getAttribute("data-correct").trim();
+      const dropTarget = box.querySelector(".drop-target");
+      const droppedDraggable = dropTarget.querySelector(".draggable");
+      
+      dropTarget.classList.remove("correct", "incorrect"); 
+
+      if (droppedDraggable) { 
+        const selectedText = getDraggableText(droppedDraggable); 
+        if (correctAnswerText === "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        } else {
+          if (selectedText === correctAnswerText) {
+            dropTarget.classList.add("correct");
+            correct++;
+          } else {
+            dropTarget.classList.add("incorrect");
+          }
+        }
+      } else { 
+        if (correctAnswerText !== "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        }
+      }
+      updateDropTargetState(dropTarget); 
+    });
+
+    let wrongMarkedCorrect = 0, wrongMarkedTotal = 0;
+    rightColumnContent.querySelectorAll('.draggable').forEach((answerEl) => {
+      const text = getDraggableText(answerEl); 
+      const checkbox = answerEl.querySelector('.wrong-flag');
+      
+      const isACorrectAnswerOptionForAnyQuestion = Array.from(document.querySelectorAll('.question-box'))
+        .some(box => {
+            const qCorrectText = box.getAttribute('data-correct').trim();
+            return qCorrectText !== "__NO_CORRECT_ANSWER__" && qCorrectText === text;
+        });
+      
+      if (!isACorrectAnswerOptionForAnyQuestion) { 
+        wrongMarkedTotal++; 
+        if (checkbox.checked) {
+          wrongMarkedCorrect++; 
+        }
+      }
+    });
+
+    const questionsWithNoAnswer = Array.from(document.querySelectorAll('.question-box'))
+                                      .filter(box => box.getAttribute('data-correct').trim() === "__NO_CORRECT_ANSWER__").length;
+    const scorableTotal = total - questionsWithNoAnswer;
+
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML =
+      `<span class="correct-count">✅ ${correct}</span> von <span class="total-count">${scorableTotal}</span> bewertbaren Fragen richtig. | ` + 
+      `<span class="marked-wrong-count">🚫 Falsch-Antworten korrekt markiert: ${wrongMarkedCorrect}</span> von ${wrongMarkedTotal}.`;
+  }
+
+  function resetQuiz() {
+    document.querySelectorAll('.drop-target').forEach(dt => {
+        const draggable = dt.querySelector('.draggable');
+        if (draggable) {
+            rightColumnContent.appendChild(draggable); 
+            showCheckbox(draggable); 
+        }
+        dt.innerHTML = ''; 
+        dt.classList.remove('correct', 'incorrect'); 
+        updateDropTargetState(dt); 
+    });
+
+    rightColumnContent.innerHTML = ''; 
+    originalAnswerOrder.forEach(draggable => {
+        rightColumnContent.appendChild(draggable); 
+        draggable.classList.remove('selected', 'dragging'); 
+        showCheckbox(draggable); 
+        const checkbox = draggable.querySelector('.wrong-flag');
+        if (checkbox) checkbox.checked = false; 
+    });
+    
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove('selected');
+      selectedAnswer = null;
+    }
+
+    document.getElementById("result").innerHTML = ""; 
+  }
+
+  document.getElementById('submitQuizButton').addEventListener('click', submitQuiz);
+  document.getElementById('resetQuizButton').addEventListener('click', resetQuiz);
+
+  document.querySelectorAll('.drop-target').forEach(updateDropTargetState);
+</script>
+<script>
+let pingTimeout;
+let logoutTimer;
+let warningTimer;
+let countdownTimer;
+let lastPing = 0;
+
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+const WARNING_BEFORE_LOGOUT = 30 * 1000; // 30 seconds
+const warningBox = document.getElementById("warningBox");
+const countdownEl = document.getElementById("countdown");
+
+function sendPing() {
+    const now = Date.now();
+    if (now - lastPing < 10000) return; 
+    lastPing = now;
+    fetch("/ping").catch(() => {});
+}
+
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    clearInterval(countdownTimer);
+
+    warningBox.style.display = "none"; // 🟡 hide warning if active again
+
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Show warning 30s before logout
+    warningTimer = setTimeout(() => {
+        let remaining = 30;
+        warningBox.style.display = "block";
+        countdownEl.textContent = remaining;
+
+        countdownTimer = setInterval(() => {
+            remaining--;
+            countdownEl.textContent = remaining;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+            }
+        }, 1000);
+    }, INACTIVITY_LIMIT - WARNING_BEFORE_LOGOUT);
+
+    // Auto logout
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/");
+    }, INACTIVITY_LIMIT);
+}
+
+// Events
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+window.addEventListener("pageshow", sendPing);
+window.addEventListener("beforeunload", sendPing);
+
+resetTimers();
+</script>
+</body></html>

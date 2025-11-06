@@ -1,0 +1,807 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Lesen Teil 3</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<!-- Font Awesome for Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+    :root {
+      --primary-color: #3498db; /* A slightly more vibrant blue */
+      --secondary-color: #2ecc71; /* Green for success */
+      --danger-color: #e74c3c; /* Red for error */
+      --light-bg: #ecf0f1;
+      --dark-text: #2c3e50;
+      --light-text: #ffffff;
+      --border-radius: 10px;
+      --box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      --box-shadow-hover: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark-text);
+      animation: fadeInPage 0.8s ease-out;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      padding: 20px 25px;
+      margin-bottom: 25px;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-size: 26px;
+      font-weight: 600;
+      box-shadow: var(--box-shadow);
+      letter-spacing: 0.5px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @media(min-width: 768px) {
+      .container {
+        flex-direction: row;
+      }
+    }
+
+    .left-column, .right-column {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .quiz-scroll-container, .right-column-content {
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: var(--box-shadow);
+      max-height: 60vh; /* Adjusted for better viewport fit */
+      overflow-y: auto;
+      /* Custom scrollbar styling */
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) var(--light-bg);
+    }
+
+    /* Style for .right-column-content when being dragged over */
+    .right-column-content.drag-over {
+        background-color: #eef8ff; /* Same as .drop-target.drag-over */
+        border: 2px dashed var(--primary-color); /* Add a border to indicate it's a drop zone */
+    }
+
+
+    .quiz-scroll-container::-webkit-scrollbar,
+    .right-column-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    .quiz-scroll-container::-webkit-scrollbar-track,
+    .right-column-content::-webkit-scrollbar-track {
+      background: var(--light-bg);
+      border-radius: var(--border-radius);
+    }
+    .quiz-scroll-container::-webkit-scrollbar-thumb,
+    .right-column-content::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: var(--border-radius);
+      border: 2px solid var(--light-bg);
+    }
+
+
+    .question-box {
+      border: 1px solid #bdc3c7;
+      border-left: 5px solid var(--primary-color);
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #fdfdfd; /* Slightly off-white */
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .question-box:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .question-text {
+      font-size: 0.9em;
+      color: #7f8c8d;
+      margin-top: 10px;
+    }
+
+    .drop-target {
+      background-color: #f9f9f9;
+      padding: 12px;
+      margin-bottom: 10px; /* Space between drop target and question text */
+      border: 2px dashed #cccccc;
+      min-height: 45px;
+      border-radius: 8px;
+      text-align: center;
+      transition: background-color 0.3s, border-color 0.3s;
+      display: flex; /* To center placeholder and dropped item */
+      align-items: center;
+      justify-content: center;
+      position: relative; /* For feedback icons */
+    }
+    .drop-target.empty-drop-target::before {
+      content: "Hier Antwort ablegen";
+      color: #aaa;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+    .drop-target:not(.empty-drop-target)::before {
+      content: ""; /* Clear placeholder when not empty */
+    }
+
+    .drop-target:hover, .drop-target.drag-over {
+      background-color: #eef8ff;
+      border-color: var(--primary-color);
+    }
+
+    .draggable {
+      background-color: #e0e0e0;
+      color: var(--dark-text);
+      margin: 10px 0;
+      padding: 12px 15px;
+      border-radius: 8px;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+      font-size: 0.95em;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .draggable:hover {
+      background-color: #d0d0d0;
+      transform: translateX(3px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .draggable.selected {
+      outline: 2px solid var(--primary-color);
+      box-shadow: 0 0 0 3px var(--primary-color_alpha, rgba(52, 152, 219, 0.3));
+      background-color: #cce7ff;
+    }
+    .draggable.dragging {
+      opacity: 0.6;
+      transform: scale(0.95);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      cursor: grabbing;
+    }
+
+    /* Feedback styling for drop targets */
+    .drop-target.correct {
+      background-color: #e8f5e9; /* Light green */
+      border: 2px solid var(--secondary-color) !important;
+    }
+    .drop-target.correct::after {
+      content: "\f00c"; /* Font Awesome check icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--secondary-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+
+    .drop-target.incorrect {
+      background-color: #ffebee; /* Light red */
+      border: 2px solid var(--danger-color) !important;
+    }
+    .drop-target.incorrect::after {
+      content: "\f00d"; /* Font Awesome times icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--danger-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+    /* Ensure dropped draggable text is visible over feedback */
+    .drop-target .draggable {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      width: calc(100% - 30px); /* Adjust width to make space for icon */
+      padding-right: 35px; /* Space for the potential icon */
+      box-sizing: border-box;
+    }
+    .drop-target.correct .draggable { background-color: var(--secondary-color); }
+    .drop-target.incorrect .draggable { background-color: var(--danger-color); }
+
+
+    .wrong-flag {
+      margin-right: 10px;
+      accent-color: var(--danger-color);
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    .button-container {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .quiz-button {
+      padding: 12px 25px;
+      border: none;
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--box-shadow);
+    }
+    .quiz-button:hover {
+      background-color: #2980b9; /* Darker shade of primary */
+      transform: translateY(-2px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .quiz-button:active {
+      transform: translateY(0px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .quiz-button.secondary {
+      background-color: #7f8c8d; /* A neutral secondary color */
+    }
+    .quiz-button.secondary:hover {
+      background-color: #6c7a89;
+    }
+
+    #result {
+      text-align: center;
+      margin-top: 25px;
+      padding: 15px;
+      font-size: 1.1em;
+      font-weight: 500;
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    #result .correct-count { color: var(--secondary-color); }
+    #result .total-count { color: var(--primary-color); }
+    #result .marked-wrong-count { color: var(--danger-color); }
+
+    #warningBox {
+  display: none;
+  position: fixed;
+  top: 20px;                  
+  left: 50%;                  
+  transform: translateX(-50%);
+  background: #f81d1d;
+  color: #ffffff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 9999;
+}
+
+  </style>
+</head>
+<body>
+<div class="header">Lesen Teil 3: Schiffsreise </div>
+<div class="container">
+<div class="left-column">
+<div class="quiz-scroll-container">
+<!-- Questions A-->
+<div class="question-box" data-correct="Sie möchten Ihren Eltern zur Silberhochzeit eine besondere Schiffsreise auf dem Meer schenken.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Norwegen: Kirkenes-Bergen</h4>
+<p>Die schönste Seereise der Welt - von Anfang April bis Ende Oktober. 6-Tage-Seereise 2009 ab 699,- € p. P. Eindrucksvolle Landschaften entdecken. Die Seele baumeln lassen. Natur mit allen Sinnen genießen. Mit einer Postschiffreise können Sie das unglaubliche Panorama, das Ihnen die norwegische Küste wie im Bilderbuch darbietet, genießen. Erleben Sie die Einzigartigkeit der atemberaubenden Gebirgsketten, der artenreichen Tierwelt und der idyllisch gelegenen Hafenstädte, die wir im Liniendienst anfahren. Buchen Sie innerhalb der nächsten 6 Wochen - und sichern Sie sich Ihre Wunschkabine und einen Frühbucher-Bonus bis 25%. Information, aktueller Katalog und Buchung unter: </p>
+            Tel.: (040) 367 53-496, E-Mail: info@eiligruten.de, www.eiligruten.de.
+        </div>
+</div>
+<!-- Questions B-->
+<div class="question-box" data-correct="Ihre Freundin möchte mit ihrem Mann Silvester und Neujahr im Urlaub feiern, aber nicht schon wieder im Gebirge.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Mal was ganz anderes machen</h4>
+<p>Winterurlaub am Meer. Denn Nord- und Ostseeküste bieten auch in der kalten Jahreszeit Aktivitäten, die der ganzen Familie Spaß machen. Zum Beispiel "Boßeln". Welche Mannschaft kullert die bleigefüllte Holzkugel auf den gefrorenen Wegen am weitesten? Zwischendurch gibt es heißen Früchtetee oder Glühwein, hinterher traditionell Grünkohl für alle. Tierfreunde können auf einer Robbensafari zusehen, wie die Robbenmütter ihre Babys säugen. Wer will, kann die Winterlandschaft dick eingemummt von der Pferdekutsche aus genießen. Gleichmäßig stapfen die Hufe im Sand, der Leuchtturm ist das ferne Ziel. Und danach aufwärmen am knisternden Kamin, mit süßem Punsch und Bratapfel.</p>
+<p>Braucht da noch jemand Berge?</p>
+            Infos unter: www.schleswig-holstein.de.
+        </div>
+</div>
+<!-- Questions C-->
+<div class="question-box" data-correct="Ein Bekannter möchte im Winter ein besinnliches Wochenende in den Bergen verbringen, denn er mag es, durch die verschneite Natur zu laufen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Meditation im Schnee</h4>
+<p>Nur die Schritte knirschen gleichmäßig im Schnee. Sonst ist es absolut still. Rechts und links ragen die Berge schroff in den blauen Himmel. Strahlend weiß glitzert die Landschaft wie von Tausenden kleiner Diamanten. Wer in meditativer Stimmung durch den Schnee stapfen möchte, ist auf einer Schneeschuhwanderung in den Ostschweizer Bergen richtig. Beim Schneeschuh-Wochenende wandert man mit großflächigen Schuhen ausgerüstet durch den Tiefschnee. Später fahren dann alle mit dem Schlitten ins Tal, wo im Gasthaus schon eine heiße Suppe auf dem Herd dampft und ein warmes Bett wartet. </p>
+<p>Für mehr Informationen besuchen Sie unsere Internet-Seite: www.meditation-im-schnee.ch.</p>
+</div>
+</div>
+<!-- Questions D-->
+<div class="question-box" data-correct="Sie wollen wie jedes Jahr in der zweiten Jahreshälfte eine zirka einwöchige organisierte Urlaubsreise in Europa machen und sich dabei viel mit dem Fahrrad fortbewegen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Fluss- und Radreise durch Belgien</h4>
+<p>8 Tage Fluss- und Radreise durch Belgien. Abseits der Hauptstraßen fahren Sie mit Schiff und Rad durch die flache Polderlandschaft Belgiens, die dafür ideal geeignet ist. Die Städte Brügge und Brüssel bilden den Anfangs- und Endpunkt der Reise. Im Reisepreis enthalten: Bahnreise in der 2. Klasse ab Frankfurt, Transfers vom Bahnhof zum Schiff und zurück. 7 Nächte in Außenkabinen an Board der "Quo Vadis", Frühstück, Mittagessen oder Lunchpaket für Fahrradtouren, Abendessen. Tägliche Tourenbesprechungen, Landkarten, alle Hafen-, Schleusen- und Brückengebühren, Leihgebühr für ein 7-Gang-Unisex-Rad, qualifizierte, ortskundige Reiseleitung. Die Radstrecke beträgt ca. 296 km. Termin:</p>
+            19. bis 26. September. Preis: 1199 € p. P. in Zweibettkabine.
+        </div>
+</div>
+<!-- Questions E-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Radwandern durch das Veneto </h4>
+<p>8 Tage Radwandern durch das Veneto. Sogar Goethe war sprachlos - so schön ist Norditalien. Ruhige, flache Wege geleiten Sie vom Gardasee über Verona nach Vicenza. Durchs Etschtal und über die Lagunen kommen Sie nach Venedig. Im Reisepreis enthalten: Bahnreise 2. Klasse von Frankfurt nach Verona und zurück von Venedig inklusive Schafwagen. Transfer von und zum Bahnhof in Verona und Venedig. 6 Übernachtungen in ausgewählten Hotels inkl. Frühstück, 6 Abendessen, Picknickservice, Leih-Tourenrad mit 8-Gang-Schaltung, sämtliche Eintritte laut Programm, qualifizierte, ortskundige Reiseleitung, Kleinbus als Begleitfahrzeug, Gepäcktransport. </p>
+            Termin: 5. bis 12. April. Preis: 1399 € p. P. im DZ.
+        </div>
+</div>
+<!-- Questions F-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Übernachten "Im Namen der Rose"</h4>
+<p>Berühmt wurde Kloster Eberbach 1988 als Schauplatz für die Innenaufnahmen zum Film "Der Name der Rose". Zwar gibt es heute kein klösterliches Leben mehr, aber das in seinen Baukörpern erhaltene Kloster gilt als das bedeutendste mittelalterliche Gesamtkunstwerk Hessens. Die jahrhundertealte Weinbautradition hat sich bis heute fortgesetzt. Wer völlig unbeschwert die Weinverkostungen erleben möchte, kann das "Herbst-Winter-Wochenend-Spezial" nutzen, dass die Gastronomiebetriebe im Kloster Eberbach zusammengestellt haben. Das Angebot umfasst auch eine Übernachtung im Doppelzimmer von Samstag auf Sonntag. Es beinhaltet zudem ein reichhaltiges Früstücksbuffet und ein Vier-Gänge-Überraschungsmenü am Abend. Der Preis pro Person beträgt 97,- €. </p>
+            Weitere Informationen gibt es bei den Gastronomiebetrieben im Kloster Eberbach, Eltville, unter Telefon 06723/993-0.         
+        </div>
+</div>
+<!-- Questions G-->
+<div class="question-box" data-correct="Eine Bekannte aus dem Rhein-Main-Gebiet sucht Vorschläge für Ein-Tages-Ausflüge, denn sie übernachtet nicht gern in fremden Betten.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Tagestouren in Rheinhessen und im Rheingau</h4>
+<p>Mit der Zahnstangenbahn auf den Wiesbadener Neroberg fahren, in Geisenheim mediterran kochen lernen, wandern mit Lamas und Alpakas als Begleiter, in Siefersheim mit Kräuterfrauen nach vergessenen Pflanzen suchen oder eine Führung durch Kloster Eberrbach mit anschließender Weinprobe — 111 Tipps für Tagestouren in Rheinhessen und im Rheingau stellt der neue Band “Ein schöner Tag” vor. Darunter sind auch echte Geheimtipps. Zum Beispiel, wie Besucher im Mainzer Dom ins Innere der Orgel steigen können oder wo die “Nacht der Verführung” stattfindet.</p>
+</div>
+</div>
+<!-- Questions H-->
+<div class="question-box" data-correct="Sie möchten einen netten Abend mit Freunden bei gutem Essen und außergewöhnlichem Unterhaltungsprogramm verleben.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Abend im Palladio</h4>
+<p>Wenn die Tage kürzer und die Nächte kälter werden, ist es Zeit für Artistik, Comedy und Gaumenfreuden. Magier, Jongleure, Akrobaten und ein Vier-Gang-Gourmet-Menü im Schein hunderter Kerzen: Ein Abend im Palladio verspricht unterhaltsame Stunden mit perfektem Genuss im stilvollen Ambiente des traumhaft schönen, nostalgischen Spiegelpalastes. Das Gourmet-Theater Palladio serviert Ihnen seine charmante Mixtur aus hochkarätigem Entertainment und exquisiter Kochkunst. Freuen Sie sich auf köstliche Menükreationen und erleben Sie dreieinhalb Stunden voller Humor und Lebensfreude. Lassen Sie sich verwöhnen und verzaubern! Dienstags bis sonntags sind wir für Sie da: Beginn ist jeweils um 20.00 Uhr. Foyer und Bar sind bereits 90 Minuten vor Showbeginn geöffnet.</p>
+</div>
+</div>
+<!-- Questions I-->
+<div class="question-box" data-correct="Sie suchen für eine prunkvolle Hochzeitsfeier geeignete festliche Räumlichkeiten in einer stimmungsvollen klösterlichen Umgebung für zirka 50 Personen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Kloster Eberbach</h4>
+<p>Kloster Eberbach mit seinen eindrucksvollen mittelalterlichen und barocken Bauten bietet seinen Gästen einzigartige Voraussetzungen für eine stilvolle Veranstaltung in altehrwürdigen Klostermauern. Sie können viele unserer repräsentativen Säle und prachtvollen Räume für Veranstaltungen anmieten. Ob Sie einen festlichen Empfang oder ein nobles Bankett planen oder ob Ihnen eine stilvolle Produktpräsentation vorschwebt: Hier lässt sich all dies hervorragend inszenieren. Die breite Palette unserer Räumlichkeiten und Gärten gibt Raum für Gesellschaften von 20 bis 1.000 Personen und lässt im Zusammenspiel mit dem Ambiente der Klosteranlage jede Veranstaltung zu einem ganz besonderen Ereignis werden. Hier finden Sie den richtigen Rahmen für Ihre Familienfeier, Ihr Seminar, Ihren Betriebsausflug, ein festliches Bankett oder eine Vortragsveranstaltung. Einige Räume sind zudem für Hochzeiten, Konzerte und Lesungen geeignet.</p>
+</div>
+</div>
+<!-- Questions J-->
+<div class="question-box" data-correct="Sie sind neu in Frankfurt a. M. und suchen deshalb nach nützlichen Informationen und praktischen Tipps, um sich schnell in der neuen Umgebung einzuleben.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Stadt-Führer Frankfurt am Main. Kultur &amp; mehr</h4>
+<p>Viel Lob von der Lokalpresse für einen neuen Stadt-Führer über die Mainmetropole: Anne Schütz: Frankfurt am Main. Kultur &amp; mehr. Paul Müller Verlag, 15,95 €. Dieser umfangreiche Reise-Führer wartet mit einer ganz besonderen Mischung auf: Rundgänge zur Stadtgeschichte stehen neben einer geballten Ladung an praktischen Informationen. Besonders gelungen ist es, wie die Autorin historische Details mit Spaziergängen verzahnt. Sie rennt keinen Trends hinterher, sondern führt als kenntnisreiche Begleiterin durch ihre Stadt. Ein praktischer Stadtkulturführer für Einheimische und Besucher mit Hunderten von Tipps, Adressen, Öffnungszeiten und Preisen von Parks und Bädern über schöne Lokale bis zu Museen, Theatern und Veranstaltungsorten.</p>
+</div>
+</div>
+<!-- Questions K-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Tour zu Schauplätzen der berühmtesten Kriminalfälle Frankfurts</h4>
+<p>Der Historiker und Stadtführer Peter Glock begleitet Sie auf einer interessanten zweistündigen Tour durch die Innenstadt zu Schauplätzen der berühmtesten Kriminalfälle in der Geschichte Frankfurts. Sie erfahren alles über spektakuläre Verbrechen, wie z. B. den Mord an Rosemarie Nitribitt, die Hinrichtung von Vinzenz Fettmilch im Jahre 1616 oder die Ermordung des Klavierhändlers Lichtenstein im Jahre 1904, als erstmals ein Mordfall durch die Abnahme von Fingerabdrücken aufgeklärt wurde. Die Führung findet jeden Sonntag ab 14.00 Uhr statt. Treffpunkt: Café Hauptwache.</p>
+</div>
+</div>
+<!-- Questions L-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Statistisches Jahrbuch der Stadt Frankfurt</h4>
+<p>An einem durchschnittlichen Tag in Frankfurt werden 19 Babya geboren, sieben Brautpaare heiraten, aber fünf Ehepaare lassen sich scheiden. 136 Frankfurter ziehen im Stadtgebiet um, sechs neue Wohnungen werden fertiggestellt und acht Ausländer eingebürgert. Im Statistischen Jahrbuch der Stadt Frankfurt werden alle wichtigen Zahlen zum Leben, Arbeiten und Wohnen in der Stadt erfasst. Das Bürgeramt, Zeil 3, gibt den Bericht alljährlich heraus. Interessierte können das Statistische Jahrbuch im Internet herunterladen (www.frankfurt.de). Der Download ist kostenfrei.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="right-column">
+<!-- MODIFIED: Added ondragover and ondrop to make this a droppable area -->
+<div class="right-column-content" onclick="clearSelected()" ondragover="allowDrop(event)" ondrop="dropOnAnswersContainer(event)">
+<!-- Answers -->
+<div class="draggable" draggable="true" id="a1" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihre Freundin möchte mit ihrem Mann Silvester und Neujahr im Urlaub feiern, aber nicht schon wieder im Gebirge.
+      </div>
+<div class="draggable" draggable="true" id="a2" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Eine Bekannte aus dem Rhein-Main-Gebiet sucht Vorschläge für Ein-Tages-Ausflüge, denn sie übernachtet nicht gern in fremden Betten. 
+      </div>
+<div class="draggable" draggable="true" id="a3" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie suchen für eine prunkvolle Hochzeitsfeier geeignete festliche Räumlichkeiten in einer stimmungsvollen klösterlichen Umgebung für zirka 50 Personen.
+      </div>
+<div class="draggable" draggable="true" id="a4" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie interessieren sich für Bücher über Architektur und Gartenarchitektur deutscher Klosteranlagen. 
+      </div>
+<div class="draggable" draggable="true" id="a5" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ein Bekannter möchte im Winter ein besinnliches Wochenende in den Bergen verbringen, denn er mag es, durch die verschneite Natur zu laufen.
+      </div>
+<div class="draggable" draggable="true" id="a6" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie wollen wie jedes Jahr in der zweiten Jahreshälfte eine zirka einwöchige organisierte Urlaubsreise in Europa machen und sich dabei viel mit dem Fahrrad fortbewegen.
+      </div>
+<div class="draggable" draggable="true" id="a7" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie möchten Ihren Eltern zur Silberhochzeit eine besondere Schiffsreise auf dem Meer schenken. 
+      </div>
+<div class="draggable" draggable="true" id="a8" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie möchten einen netten Abend mit Freunden bei gutem Essen und außergewöhnlichem Unterhaltungsprogramm verleben.
+      </div>
+<div class="draggable" draggable="true" id="a9" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie suchen gute Kriminalromane, deren Handlung im Rhein-Main-Gebiet und besonders in Frankfurt spielt. 
+      </div>
+<div class="draggable" draggable="true" id="a10" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie sind neu in Frankfurt a. M. und suchen deshalb nach nützlichen Informationen und praktischen Tipps, um sich schnell in der neuen Umgebung einzuleben.
+      </div>
+</div>
+</div>
+</div>
+<div class="button-container">
+<button class="quiz-button" id="submitQuizButton">
+<i class="fas fa-paper-plane"></i> Abschicken
+    </button>
+<button class="quiz-button secondary" id="resetQuizButton">
+<i class="fas fa-redo"></i> Zurücksetzen
+    </button>
+<!-- Changed to <a> tag for navigation, href to a generic "index.html" or "#" -->
+<a class="quiz-button secondary" href="/index2" id="homeButton" role="button">
+<i class="fas fa-home"></i> Startseite
+    </a>
+</div>
+<div id="result"></div>
+<script>
+  let selectedAnswer = null;
+  const rightColumnContent = document.querySelector(".right-column-content");
+  const originalAnswerOrder = Array.from(rightColumnContent.querySelectorAll('.draggable')); // Store initial order for reset
+
+  // MODIFIED: allowDrop to correctly identify parent droppable container
+  function allowDrop(ev) {
+    ev.preventDefault();
+    let droppableContainer = ev.target;
+    // Traverse up to find the actual droppable container (.drop-target or .right-column-content)
+    while (droppableContainer && droppableContainer !== document.body &&
+           !droppableContainer.classList.contains("drop-target") &&
+           !droppableContainer.classList.contains("right-column-content")) {
+        droppableContainer = droppableContainer.parentElement;
+    }
+
+    if (droppableContainer && (droppableContainer.classList.contains("drop-target") || droppableContainer.classList.contains("right-column-content"))) {
+        droppableContainer.classList.add("drag-over");
+    }
+  }
+
+  function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+    ev.target.classList.add("dragging");
+  }
+
+  document.addEventListener('dragleave', function(event) {
+    if (event.target.classList && (event.target.classList.contains("drop-target") || event.target.classList.contains("right-column-content"))) {
+        if (!event.target.contains(event.relatedTarget) && event.target !== event.relatedTarget) {
+             event.target.classList.remove("drag-over");
+        } else if (event.relatedTarget === null) { 
+            event.target.classList.remove("drag-over");
+        }
+    }
+  }, false);
+  
+  document.addEventListener('dragend', function(event) {
+    if (event.target.classList && event.target.classList.contains('draggable')) {
+      event.target.classList.remove('dragging');
+    }
+    document.querySelectorAll('.drop-target.drag-over, .right-column-content.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+  });
+
+  // MODIFIED: drop function for question slots
+  function drop(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    let dropTarget = ev.target;
+
+    while (dropTarget && !dropTarget.classList.contains("drop-target")) {
+        dropTarget = dropTarget.parentElement;
+    }
+    
+    if (!dropTarget || !draggedEl) return;
+
+    dropTarget.classList.remove("drag-over");
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; 
+
+    const currentAnswerInTarget = dropTarget.querySelector(".draggable");
+    if (currentAnswerInTarget && currentAnswerInTarget !== draggedEl) {
+      rightColumnContent.appendChild(currentAnswerInTarget);
+      showCheckbox(currentAnswerInTarget);
+    }
+    
+    dropTarget.innerHTML = ""; 
+    dropTarget.appendChild(draggedEl);
+    hideCheckbox(draggedEl);
+    updateDropTargetState(dropTarget);
+
+    if (originalParentOfDraggedEl &&
+        originalParentOfDraggedEl.classList.contains("drop-target") &&
+        originalParentOfDraggedEl !== dropTarget) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+  // NEW: Function to handle drops onto the answers container
+  function dropOnAnswersContainer(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    const answersContainer = ev.currentTarget; 
+
+    if (!draggedEl || !answersContainer) return;
+
+    answersContainer.classList.remove("drag-over");
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; 
+
+    answersContainer.appendChild(draggedEl);
+    showCheckbox(draggedEl);
+
+    if (originalParentOfDraggedEl && originalParentOfDraggedEl.classList.contains("drop-target")) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+
+  function hideCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "none";
+  }
+
+  function showCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "inline-block";
+  }
+
+  function selectAnswer(el, event) {
+    event.stopPropagation(); 
+    if (selectedAnswer === el) { 
+      el.classList.remove("selected");
+      selectedAnswer = null;
+    } else {
+      if (selectedAnswer) selectedAnswer.classList.remove("selected");
+      selectedAnswer = el;
+      el.classList.add("selected");
+    }
+  }
+
+  // MODIFIED: clickDrop function
+  function clickDrop(targetDropzone) {
+    if (selectedAnswer) {
+      const originalParentOfSelectedAnswer = selectedAnswer.parentElement;
+
+      const currentAnswerInDropzone = targetDropzone.querySelector(".draggable");
+      if (currentAnswerInDropzone && currentAnswerInDropzone !== selectedAnswer) {
+        rightColumnContent.appendChild(currentAnswerInDropzone);
+        showCheckbox(currentAnswerInDropzone);
+      }
+      
+      targetDropzone.innerHTML = ""; 
+      targetDropzone.appendChild(selectedAnswer);
+      hideCheckbox(selectedAnswer);
+      updateDropTargetState(targetDropzone);
+
+      if (originalParentOfSelectedAnswer &&
+          originalParentOfSelectedAnswer.classList.contains("drop-target") &&
+          originalParentOfSelectedAnswer !== targetDropzone) {
+          updateDropTargetState(originalParentOfSelectedAnswer);
+      }
+
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function clearSelected() {
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function updateDropTargetState(dropTarget) {
+    if (!dropTarget || !dropTarget.classList.contains('drop-target')) return;
+    
+    if (dropTarget.querySelector(".draggable")) {
+      dropTarget.classList.remove("empty-drop-target");
+    } else {
+      dropTarget.classList.add("empty-drop-target");
+    }
+  }
+
+  function getDraggableText(draggableElement) {
+    const clone = draggableElement.cloneNode(true);
+    const checkbox = clone.querySelector('.wrong-flag');
+    if (checkbox) {
+        checkbox.remove();
+    }
+    return clone.textContent.trim();
+  }
+
+  function submitQuiz() {
+    let total = 0, correct = 0;
+    document.querySelectorAll('.question-box').forEach((box) => {
+      total++;
+      const correctAnswerText = box.getAttribute("data-correct").trim();
+      const dropTarget = box.querySelector(".drop-target");
+      const droppedDraggable = dropTarget.querySelector(".draggable");
+      
+      dropTarget.classList.remove("correct", "incorrect"); 
+
+      if (droppedDraggable) { 
+        const selectedText = getDraggableText(droppedDraggable); 
+        if (correctAnswerText === "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        } else {
+          if (selectedText === correctAnswerText) {
+            dropTarget.classList.add("correct");
+            correct++;
+          } else {
+            dropTarget.classList.add("incorrect");
+          }
+        }
+      } else { 
+        if (correctAnswerText !== "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        }
+      }
+      updateDropTargetState(dropTarget); 
+    });
+
+    let wrongMarkedCorrect = 0, wrongMarkedTotal = 0;
+    rightColumnContent.querySelectorAll('.draggable').forEach((answerEl) => {
+      const text = getDraggableText(answerEl); 
+      const checkbox = answerEl.querySelector('.wrong-flag');
+      
+      const isACorrectAnswerOptionForAnyQuestion = Array.from(document.querySelectorAll('.question-box'))
+        .some(box => {
+            const qCorrectText = box.getAttribute('data-correct').trim();
+            return qCorrectText !== "__NO_CORRECT_ANSWER__" && qCorrectText === text;
+        });
+      
+      if (!isACorrectAnswerOptionForAnyQuestion) { 
+        wrongMarkedTotal++; 
+        if (checkbox.checked) {
+          wrongMarkedCorrect++; 
+        }
+      }
+    });
+
+    const questionsWithNoAnswer = Array.from(document.querySelectorAll('.question-box'))
+                                      .filter(box => box.getAttribute('data-correct').trim() === "__NO_CORRECT_ANSWER__").length;
+    const scorableTotal = total - questionsWithNoAnswer;
+
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML =
+      `<span class="correct-count">✅ ${correct}</span> von <span class="total-count">${scorableTotal}</span> bewertbaren Fragen richtig. | ` + 
+      `<span class="marked-wrong-count">🚫 Falsch-Antworten korrekt markiert: ${wrongMarkedCorrect}</span> von ${wrongMarkedTotal}.`;
+  }
+
+  function resetQuiz() {
+    document.querySelectorAll('.drop-target').forEach(dt => {
+        const draggable = dt.querySelector('.draggable');
+        if (draggable) {
+            rightColumnContent.appendChild(draggable); 
+            showCheckbox(draggable); 
+        }
+        dt.innerHTML = ''; 
+        dt.classList.remove('correct', 'incorrect'); 
+        updateDropTargetState(dt); 
+    });
+
+    rightColumnContent.innerHTML = ''; 
+    originalAnswerOrder.forEach(draggable => {
+        rightColumnContent.appendChild(draggable); 
+        draggable.classList.remove('selected', 'dragging'); 
+        showCheckbox(draggable); 
+        const checkbox = draggable.querySelector('.wrong-flag');
+        if (checkbox) checkbox.checked = false; 
+    });
+    
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove('selected');
+      selectedAnswer = null;
+    }
+
+    document.getElementById("result").innerHTML = ""; 
+  }
+
+  document.getElementById('submitQuizButton').addEventListener('click', submitQuiz);
+  document.getElementById('resetQuizButton').addEventListener('click', resetQuiz);
+
+  document.querySelectorAll('.drop-target').forEach(updateDropTargetState);
+</script>
+<script>
+let pingTimeout;
+let logoutTimer;
+let warningTimer;
+let countdownTimer;
+let lastPing = 0;
+
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+const WARNING_BEFORE_LOGOUT = 30 * 1000; // 30 seconds
+const warningBox = document.getElementById("warningBox");
+const countdownEl = document.getElementById("countdown");
+
+function sendPing() {
+    const now = Date.now();
+    if (now - lastPing < 10000) return; 
+    lastPing = now;
+    fetch("/ping").catch(() => {});
+}
+
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    clearInterval(countdownTimer);
+
+    warningBox.style.display = "none"; // 🟡 hide warning if active again
+
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Show warning 30s before logout
+    warningTimer = setTimeout(() => {
+        let remaining = 30;
+        warningBox.style.display = "block";
+        countdownEl.textContent = remaining;
+
+        countdownTimer = setInterval(() => {
+            remaining--;
+            countdownEl.textContent = remaining;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+            }
+        }, 1000);
+    }, INACTIVITY_LIMIT - WARNING_BEFORE_LOGOUT);
+
+    // Auto logout
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/");
+    }, INACTIVITY_LIMIT);
+}
+
+// Events
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+window.addEventListener("pageshow", sendPing);
+window.addEventListener("beforeunload", sendPing);
+
+resetTimers();
+</script>
+</body></html>

@@ -1,0 +1,392 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Liebe Maria</title>
+<style>
+    body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #e9eaec;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+    .container {
+      display: flex;
+      max-width: 1400px;
+      width: 100%;
+      background-color: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .letter {
+      flex: 2;
+      padding: 30px;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .blank {
+      background-color: #3f6ccf;
+      color: white;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      min-width: 24px;
+      text-align: center;
+      display: inline-block;
+    }
+
+    .choices {
+  flex: 1.5;
+  background-color: #f2f3f7;
+  padding: 30px 20px;
+  overflow-y: auto;
+  max-height: 60vh; /* Adjust height as needed */
+}
+
+    .question-block {
+      margin-bottom: 20px;
+    }
+
+    .row-container {
+      background-color: #e0e4f3;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 6px;
+    }
+
+    .options {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .option {
+      background-color: white;
+      padding: 6px 14px;
+      font-size: 14px;
+      border-radius: 18px;
+      border: 2px solid #ccc;
+      cursor: pointer;
+      transition: 0.2s ease;
+      user-select: none;
+      text-align: center;
+      flex: 1;
+    }
+
+    .option:hover {
+      background-color: #e6ebf9;
+    }
+
+    .option.selected {
+      background-color: #d0defc;
+      border-color: #3f6ccf;
+      font-weight: bold;
+    }
+
+    .option.correct {
+      background-color: #c8f7c5;
+      border-color: #34a853;
+    }
+
+    .option.incorrect {
+      background-color: #fbd5d5;
+      border-color: #e53935;
+    }
+
+    input[type="radio"] {
+      display: none;
+    }
+
+    .button-wrapper {
+  max-width: 1400px;
+  margin: 30px auto 60px; /* Space above and below */
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+
+#checkBtn,
+#homeBtn {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  min-width: 200px;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* Primary button style */
+#checkBtn {
+  background-color: #3f6ccf;
+  color: white;
+}
+
+#checkBtn:hover {
+  background-color: #2f56b3;
+}
+
+/* Secondary button style */
+#homeBtn {
+  background-color: #6c7a89;
+  color: white;
+  display: inline-block;
+  line-height: 1.6;
+}
+
+#homeBtn:hover {
+  background-color: #5a6268;
+}
+
+#resetBtn {
+  background-color: #6c7a89;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  min-width: 200px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#resetBtn:hover {
+  background-color: #5a6268;
+}
+
+  </style>
+</head>
+<body>
+<div class="container">
+<div class="letter">
+<p>Liebe Maria,</p>
+<p>danke vielmals für die Einladung. Nächste Woche werde ich also <span class="blank" id="blank1">1</span> dir in Berlin sein. Ich freue mich schon sehr <span class="blank" id="blank2">2</span>, denn schließlich haben wir uns fast ein <span class="blank" id="blank3">3</span> Jahr nicht gesehen. Wie du ja weißt, wohne ich jetzt auf dem Land hier in der Nähe von Hamburg und das finde ich ganz toll. <span class="blank" id="blank4">4</span> ich würde gern auch mal wieder in eine richtige Disko gehen. Mal wieder eine ganze Nacht tanzen, das <span class="blank" id="blank5">5</span> mein Traum! Und zu zwei macht es viel <span class="blank" id="blank6">6</span> Spaß!</p>
+<p>Weißt du eigentlich, ob die Disko am Wittenberger Platz <span class="blank" id="blank7">7</span> existiert?</p>
+<p>Leider habe ich noch keine Ahnung, <span class="blank" id="blank8">8</span> ich in Berlin ankommen werde. Jedenfalls <span class="blank" id="blank9">9</span> ich versuchen, eine Mitfahrgelegenheit zu finden. Es gibt ja im Internet die Mitfahrzentrale, <span class="blank" id="blank10">10</span> so etwas organisiert. Also mache dir keine Sorgen, wenn ich etwas später komme!</p>
+<p>Ich freue mich sehr auf dich!</p>
+<p>Alexandra</p>
+</div>
+<div class="choices">
+<div class="question-block" data-blank="1">
+<div><strong>1.</strong></div>
+<div class="row-container">
+<div class="options">
+<label class="option"><input name="q1" type="radio" value="bei"/>bei</label>
+<label class="option"><input name="q1" type="radio" value="nach"/>nach</label>
+<label class="option"><input name="q1" type="radio" value="zu"/>zu</label>
+</div>
+</div>
+</div>
+<div class="question-block" data-blank="2">
+<div><strong>2.</strong></div>
+<div class="row-container">
+<div class="options">
+<label class="option"><input name="q2" type="radio" value="darauf"/>darauf</label>
+<label class="option"><input name="q2" type="radio" value="darum"/>darum</label>
+<label class="option"><input name="q2" type="radio" value="dazu"/>dazu</label>
+</div>
+</div>
+</div>
+<div class="question-block" data-blank="3">
+<div><strong>3.</strong></div>
+<div class="row-container">
+<div class="options">
+<label class="option"><input name="q3" type="radio" value="halbe"/>halbe</label>
+<label class="option"><input name="q3" type="radio" value="halben"/>halben</label>
+<label class="option"><input name="q3" type="radio" value="halbes"/>halbes</label>
+</div>
+</div>
+</div>
+<div class="question-block" data-blank="4">
+<div><strong>4.</strong></div>
+<div class="row-container">
+<div class="options">
+<label class="option"><input name="q4" type="radio" value="Aber"/>Aber</label>
+<label class="option"><input name="q4" type="radio" value="Sondern"/>Sondern</label>
+<label class="option"><input name="q4" type="radio" value="Trotzdem"/>Trotzdem</label>
+</div>
+</div>
+</div>
+<div class="question-block" data-blank="5">
+<div><strong>5.</strong></div>
+<div class="row-container">
+<div class="options">
+<label class="option"><input name="q5" type="radio" value="hätte"/>hätte</label>
+<label class="option"><input name="q5" type="radio" value="wäre"/>wäre</label>
+<label class="option"><input name="q5" type="radio" value="würde"/>würde</label>
+</div>
+</div>
+</div>
+<div class="question-block" data-blank="6">
+<div><strong>6.</strong></div>
+<div class="row-container">
+<div class="options">
+<label class="option"><input name="q6" type="radio" value="am meisten"/>am meisten</label>
+<label class="option"><input name="q6" type="radio" value="ganz"/>ganz</label>
+<label class="option"><input name="q6" type="radio" value="mehr"/>mehr</label>
+</div>
+</div>
+</div>
+<div class="question-block" data-blank="7">
+<div><strong>7.</strong></div>
+<div class="row-container">
+<div class="options">
+<label class="option"><input name="q7" type="radio" value="auch"/>auch</label>
+<label class="option"><input name="q7" type="radio" value="noch"/>noch</label>
+<label class="option"><input name="q7" type="radio" value="nur"/>nur</label>
+</div>
+</div>
+</div>
+<div class="question-block" data-blank="8">
+<div><strong>8.</strong></div>
+<div class="row-container">
+<div class="options">
+<label class="option"><input name="q8" type="radio" value="als"/>als</label>
+<label class="option"><input name="q8" type="radio" value="wann"/>wann</label>
+<label class="option"><input name="q8" type="radio" value="wenn"/>wenn</label>
+</div>
+</div>
+</div>
+<div class="question-block" data-blank="9">
+<div><strong>9.</strong></div>
+<div class="row-container">
+<div class="options">
+<label class="option"><input name="q9" type="radio" value="darf"/>darf</label>
+<label class="option"><input name="q9" type="radio" value="soll"/>soll</label>
+<label class="option"><input name="q9" type="radio" value="will"/>will</label>
+</div>
+</div>
+</div>
+<div class="question-block" data-blank="10">
+<div><strong>10.</strong></div>
+<div class="row-container">
+<div class="options">
+<label class="option"><input name="q10" type="radio" value="das"/>das</label>
+<label class="option"><input name="q10" type="radio" value="die"/>die</label>
+<label class="option"><input name="q10" type="radio" value="der"/>der</label>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="button-wrapper">
+<button id="checkBtn">Antworten prüfen</button>
+<button id="resetBtn">Zurücksetzen</button>
+<a href="/index1" id="homeBtn">Zurück zur Startseite</a>
+</div>
+<script>
+  const correctAnswers = {
+    1: "bei",
+    2: "darauf",
+    3: "halbes",
+    4: "Aber",
+    5: "wäre",
+    6: "mehr",
+    7: "noch",
+    8: "wann",
+    9: "will",
+    10: "die"
+  };
+
+  document.querySelectorAll('.option input[type="radio"]').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const label = e.target.closest('label');
+      const block = e.target.closest('.question-block');
+      const blankId = block.getAttribute('data-blank');
+      const blank = document.getElementById('blank' + blankId);
+
+      block.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+      label.classList.add('selected');
+      blank.textContent = e.target.value;
+    });
+  });
+
+  document.getElementById("checkBtn").addEventListener("click", () => {
+    document.querySelectorAll('.question-block').forEach(block => {
+      const blankId = block.getAttribute('data-blank');
+      const selectedInput = block.querySelector('input[type="radio"]:checked');
+      const options = block.querySelectorAll('.option');
+
+      options.forEach(opt => opt.classList.remove('correct', 'incorrect'));
+
+      if (selectedInput) {
+        const value = selectedInput.value;
+        const label = selectedInput.closest('.option');
+
+        if (value === correctAnswers[blankId]) {
+          label.classList.add('correct');
+        } else {
+          label.classList.add('incorrect');
+
+          // Show correct answer
+          options.forEach(opt => {
+            if (opt.textContent.trim() === correctAnswers[blankId]) {
+              opt.classList.add('correct');
+            }
+          });
+        }
+      }
+    });
+  });
+  document.getElementById("resetBtn").addEventListener("click", () => {
+  // Reset selected radio buttons
+  document.querySelectorAll('input[type="radio"]').forEach(input => {
+    input.checked = false;
+  });
+
+  // Reset blank text to their number
+  for (let i = 1; i <= 10; i++) {
+    const blank = document.getElementById('blank' + i);
+    if (blank) blank.textContent = i;
+  }
+
+  // Remove selection and feedback classes
+  document.querySelectorAll('.option').forEach(option => {
+    option.classList.remove('selected', 'correct', 'incorrect');
+  });
+});
+</script>
+<script>
+let pingTimeout;
+let logoutTimer;
+const INACTIVITY_LIMIT = 6 * 60 * 1000; // 6 minutes
+
+function sendPing() {
+    fetch("/ping").catch(() => {});
+}
+
+// Reset timers when user interacts
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+
+    // Ping immediately and schedule another one in 1 min if idle
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Auto logout after 6 min inactivity
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/"); // redirect to homepage/login
+    }, INACTIVITY_LIMIT);
+}
+
+// Events that count as activity
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+// Start timers when page loads
+resetTimers();
+</script>
+</body></html>

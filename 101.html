@@ -1,0 +1,524 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Lesen Teil 1 - Keine Zeit</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2ecc71;
+      --danger-color: #e74c3c;
+      --light-bg: #ecf0f1;
+      --dark-text: #2c3e50;
+      --light-text: #ffffff;
+      --border-radius: 10px;
+      --box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      --box-shadow-hover: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; padding: 10px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: var(--dark-text);
+      animation: fadeInPage 0.8s ease-out; min-height: 100vh;
+    }
+    @media (min-width: 600px) { body { padding: 15px; } }
+    @media (min-width: 992px) { body { padding: 20px; } }
+    @keyframes fadeInPage { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+    .main-header {
+      background-color: var(--primary-color); color: var(--light-text); padding: 12px 15px;
+      font-size: 20px; margin-bottom: 20px; border-radius: var(--border-radius);
+      text-align: center; font-weight: 600; box-shadow: var(--box-shadow); letter-spacing: 0.5px;
+    }
+    @media (min-width: 768px) { .main-header { padding: 20px 25px; font-size: 26px; margin-bottom: 25px; } }
+    .container { display: flex; flex-direction: row; justify-content: space-between; gap: 15px; }
+    @media(min-width: 992px) { .container { gap: 20px; } }
+    .left-column { width: 58%; flex-shrink: 0; }
+    .right-column { width: 38%; flex-shrink: 0; }
+    .quiz-scroll-container, .right-column-content {
+      background-color: var(--light-text); border-radius: var(--border-radius); padding: 10px;
+      box-shadow: var(--box-shadow); max-height: 75vh; overflow-y: auto; overflow-x: hidden;
+      scrollbar-width: thin; scrollbar-color: var(--primary-color) var(--light-bg);
+    }
+    @media (min-width: 992px) { .quiz-scroll-container, .right-column-content { padding: 15px; max-height: 70vh; } }
+    .quiz-scroll-container::-webkit-scrollbar, .right-column-content::-webkit-scrollbar { width: 6px; }
+    @media (min-width: 992px) { .quiz-scroll-container::-webkit-scrollbar, .right-column-content::-webkit-scrollbar { width: 8px; } }
+    .quiz-scroll-container::-webkit-scrollbar-track, .right-column-content::-webkit-scrollbar-track { background: var(--light-bg); border-radius: var(--border-radius); }
+    .quiz-scroll-container::-webkit-scrollbar-thumb, .right-column-content::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: var(--border-radius); border: 2px solid var(--light-bg); }
+    .question-box {
+      border: 1px solid #bdc3c7; border-left: 4px solid var(--primary-color); border-radius: var(--border-radius);
+      margin-bottom: 15px; padding: 10px; background-color: #fdfdfd;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      display: flex; flex-direction: column; min-height: 120px;
+    }
+    @media (min-width: 992px) { .question-box { border-left-width: 5px; margin-bottom: 20px; padding: 15px; min-height: 150px; } }
+    .question-box:hover { transform: translateY(-3px); box-shadow: var(--box-shadow-hover); }
+    .email-fields { margin-bottom: 8px; }
+    @media (min-width: 992px) { .email-fields { margin-bottom: 10px; } }
+    .drop-target {
+      background-color: #f9f9f9; padding: 10px; border: 2px dashed #cccccc; min-height: 40px;
+      border-radius: 6px; text-align: center; transition: background-color 0.3s, border-color 0.3s;
+      display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; /* Added cursor */
+    }
+    @media (min-width: 992px) { .drop-target { padding: 12px; min-height: 45px; border-radius: 8px; } }
+    .drop-target.empty-drop-target::before { content: "Drop here"; color: #aaa; font-style: italic; font-size: 0.8em; }
+    @media (min-width: 992px) { .drop-target.empty-drop-target::before { content: "Antwort hier ablegen"; font-size: 0.9em; } }
+    .drop-target:not(.empty-drop-target)::before { content: ""; }
+    .drop-target:hover, .drop-target.drag-over { background-color: #eef8ff; border-color: var(--primary-color); }
+    .question-text { font-size: 0.8em; color: #555; line-height: 1.5; overflow-y: auto; max-height: 200px; padding-right: 5px; }
+    @media (min-width: 992px) { .question-text { font-size: 0.9em; line-height: 1.6; max-height: 300px; } }
+    .draggable {
+      background-color: #e0e0e0; color: var(--dark-text); margin: 8px 0; padding: 8px 10px;
+      border-radius: 6px; cursor: grab; display: flex; align-items: center; justify-content: center;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s, outline 0.2s;
+      user-select: none; font-size: 0.85em; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      text-align: center; word-break: break-word;
+    }
+    @media (min-width: 992px) { .draggable { margin: 10px 0; padding: 12px 15px; border-radius: 8px; font-size: 0.95em; } }
+    .draggable:hover { background-color: #d0d0d0; transform: scale(1.02); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .draggable.dragging { opacity: 0.6; transform: scale(0.95); box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: grabbing; }
+
+    /* NEW CSS for selected draggable */
+    .draggable.selected {
+      outline: 3px solid var(--primary-color);
+      transform: scale(1.03);
+      box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+      background-color: #ddeeff;
+    }
+    .draggable.selected:hover {
+        background-color: #cce7ff;
+        transform: scale(1.03);
+    }
+
+    .drop-target.correct { background-color: #e8f5e9 !important; border: 2px solid var(--secondary-color) !important; }
+    .drop-target.correct::after {
+      content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--secondary-color);
+      position: absolute; right: 5px; top: 50%; transform: translateY(-50%); font-size: 1em;
+    }
+    @media (min-width: 992px) { .drop-target.correct::after { right: 10px; font-size: 1.2em; } }
+    .drop-target.incorrect { background-color: #ffebee !important; border: 2px solid var(--danger-color) !important; }
+    .drop-target.incorrect::after {
+      content: "\f00d"; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--danger-color);
+      position: absolute; right: 5px; top: 50%; transform: translateY(-50%); font-size: 1em;
+    }
+    @media (min-width: 992px) { .drop-target.incorrect::after { right: 10px; font-size: 1.2em; } }
+    .drop-target .draggable { background-color: var(--primary-color); color: var(--light-text); width: calc(100% - 25px); padding-right: 0; margin: 0; }
+    @media (min-width: 992px) { .drop-target .draggable { width: calc(100% - 40px); } }
+    .drop-target.correct .draggable { background-color: var(--secondary-color) !important; }
+    .drop-target.incorrect .draggable { background-color: var(--danger-color) !important; }
+    .button-container { margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    @media (min-width: 992px) { .button-container { margin-top: 25px; gap: 15px; } }
+    .quiz-button, .quiz-button-link {
+      padding: 10px 20px; border: none; background-color: var(--primary-color); color: white !important;
+      font-size: 14px; font-weight: 500; border-radius: var(--border-radius); cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: var(--box-shadow); text-decoration: none;
+    }
+    @media (min-width: 992px) { .quiz-button, .quiz-button-link { padding: 12px 25px; font-size: 16px; } }
+    .quiz-button:hover, .quiz-button-link:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: var(--box-shadow-hover); color: white !important; }
+    .quiz-button:active, .quiz-button-link:active { transform: translateY(0px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .quiz-button.secondary, .quiz-button-link.secondary { background-color: #7f8c8d; }
+    .quiz-button.secondary:hover, .quiz-button-link.secondary:hover { background-color: #6c7a89; }
+    #result {
+      text-align: center; margin-top: 20px; padding: 12px; font-size: 1em; font-weight: 500;
+      background-color: var(--light-text); border-radius: var(--border-radius); box-shadow: var(--box-shadow);
+    }
+    @media (min-width: 992px) { #result { margin-top: 25px; padding: 15px; font-size: 1.1em; } }
+    #result .correct-count { color: var(--secondary-color); }
+    #result .total-count { color: var(--primary-color); }
+
+    #warningBox {
+  display: none;
+  position: fixed;
+  top: 20px;                  
+  left: 50%;                  
+  transform: translateX(-50%);
+  background: #f81d1d;
+  color: #ffffff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 9999;
+}
+  </style>
+</head>
+<body>
+<div class="main-header">Lesen Teil 1 - Keine Zeit</div>
+<div class="container">
+<div class="left-column">
+<div class="quiz-scroll-container">
+<!-- Question 1 -->
+<div class="question-box" data-correct="Zeitprobleme in der Familie.">
+<div class="email-fields">
+<div class="email-subject drop-target empty-drop-target" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+</div>
+<div class="question-text">
+        Die Krüger sind eine ganz normale Familie. Vater Bernd arbeitet 40 Stunden pro Woche in einer Versicherungs-agentur, Mutter Yvonne hat einen Teilzeitjob als Arzthelferin. Das Paar hat zwei Kinder. Tom ist neun, Linda ist vier Jahre alt. Nach ihrer Arbeit holt Yvonne die beiden aus der Schule und dem Kindergarten ab. Dann geht sie einkaufen, sie wäscht, putzt und kocht, sie bringt Tom zum Fußballtraining oder Linda zum Turnen. Wenn Bernd abends nach Hause kommt, kontrolliert er noch Hausaufgaben oder besucht seinen alten Vater, der immer öfter seine Hilfe braucht. Bernd Krüger kann sich nicht erinnern, wann er das letzte Buch gelesen hat. Für Sport bleibt keine Zeit, Freunde treffen seine Frau und er eher selten. Und wenn dann ein langer Tag zu Ende geht und die beiden Kinder endlich schlafen, sitzen Bernd und Yvonne Krüger total müde auf der Couch. In vielen Familien ist es ähnlich. Vor allem Eltern befindet sich in der Gefahr, die Doppellast von Beruf und Familie nicht mehr tragen zu können. Was hilft, ist Zeitmanagement. Der Begriff ist allerdings missverständlich. Die Zeit lässt sich nicht managen. Wir können uns nur selbst managen.
+          </div>
+</div>
+<!-- Question 2 -->
+<div class="question-box" data-correct="Vorsicht vor zweifelhaften Kontaktagenturen!">
+<div class="email-fields">
+<div class="email-subject drop-target empty-drop-target" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+</div>
+<div class="question-text">
+        Der Wunsch nach der Zweisamkeit hat sich zu einem guten Geschäft entwickelt, denn gerade reiferen Alleinstehenden fällt es oft schwer, neue Partnerschaften herzustellen. Vermittlungsagenturen bieten ihre Dienste im Internet oder in den Tageszeitungen an. Neben vielen seriösen Firmen finden sich auf dem Markt aber auch zahlreiche Schwarze Schafe. Bei solchen Anbietern beginnen die Tricks bereits bei den Anzeigen in der Zeitung oder im Netz. Dort stellen Personen angeblich sich selbst vor. Ihre Beschreibung ist direkte auf die Wünsche älterer Singles zugeschnitten, oft genug auch schon mit ansprechendem „Originalfoto“. Wer die angegebene Telefonnummer wählt, muss dann plötzlich feststellen, es in Wirklichkeit mit einer Partnervermittlungsagentur zu tun zu haben. Und die gehen dann in der Regel schnell und aggressiv vor. Es wird ein Treffen vereinbart - und wenn man sich wirklich darauf einlassen möchte, heißt es schon hier: Aufgepasst! Wird nämlich ein neutraler Treffpunkt, beispielsweise ein Café vereinbart, verliert der Kunde sein 14-tägiges Widerrufs- bzw. Rücktrittsrecht, das ihm bei einem Hausbesuch zustehen und ihn von einem vielleicht zu schnell unterschriebenen Vertrag befreien würde.
+        </div>
+</div>
+<!-- Question 3 -->
+<div class="question-box" data-correct="Liebe fürs Leben muss wachsen.">
+<div class="email-fields">
+<div class="email-subject drop-target empty-drop-target" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+</div>
+<div class="question-text">
+        Hat man den richtigen Partner gefunden, muss an der Beziehung gearbeitet werden. Was viele nicht wissen: die Partnerschaft verläuft in Phasen. Fast jede Liebe beginnt mit einer Hochphase der Verliebtheit. Ist diese Phase vorüber, folgt eine Phase des satten Glücks, in der beide den Wunsch haben, mit diesem Menschen ein ganzes Leben zu verbringen. Fast alle Paare bin danach eine Zeit, in der der Alltag in die Beziehung eintritt. Man ist gezwungen, sich in einem realistischeren Licht zu sehen. In der folgenden Stress- und Streitphase geht es darum, die Bedingungen des Zusammenlebens festzulegen, Lösungen für Partnerschaft und Beruf zu finden. Bleibt ein Paar nach dieser schwierigen Phase zusammen, festigt sich die Partnerschaft in der fünften Phase weiter und wird ruhiger. Die Partner finden zu sich selbst, erlauben sich gegenseitig mehr freie Zeit und eigene Interessen. In der letzten Phase bildet sich, was man die Liebe fürs Leben nennen kann. In der Beziehung haben sich so viel Sicherheit und Vertrauen gebildet, dass die Beziehung eine feste Basis für die Zukunft hat.
+        </div>
+</div>
+<!-- Question 4 -->
+<div class="question-box" data-correct="Wer sucht, der findet.">
+<div class="email-fields">
+<div class="email-subject drop-target empty-drop-target" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+</div>
+<div class="question-text">
+        Knapp 13 Millionen Singul-Haushalte - d.h. Haushalte von Alleinlebenden - gibt es in Deutschland, und das meist unfreiwillig. Fast jeder, der alleine lebt, wünscht sich der richtigen Partner. Doch wie und wo ist er oder sie zu finden? Glückliche Zweisamkeit - davon träumen die meisten Singles. Oftmals stecken Singles in einer schwierigen Situation: Wer lange allein gelebt hat, wünscht sich zwar eine feste Bindung, gleichzeitig wächst aber auch die Angst davor. Dieses Wechselbad aus Wollen und Vorsichtig-Sein macht die Sache immer schwieriger - und nicht selten vergehen so die Jahre des Alleinseins. Zwar sollte man die Hoffnung nie aufgeben, den oder die Richtige irgendwann zufällig zu finden. Aber dass die Traumfrau auf einmal an die Tür klopft oder ganz plötzlich der Traumprinz auf einem weißen Schimmel um die Ecke reitet, ist ziemlich unwahrscheinlich: Deswegen lautet der Rat für alle Singles, ob es Ihnen gefällt oder nicht: Ausgehen, Ausgehen, Ausgehen.
+        </div>
+</div>
+<!-- Question 5 -->
+<div class="question-box" data-correct="Wenn die Kinder aus dem Haus sind.">
+<div class="email-fields">
+<div class="email-subject drop-target empty-drop-target" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+</div>
+<div class="question-text">
+        Nach dem Abitur, zum Studium oder weil der Zeitpunkt einfach gekommen ist: Wenn die Kinder ausziehen, verändert sich viel, auch für die Eltern. Neben der Freude, endlich wieder Zeit und Raum für sich zu haben, entsteht auch eine Leere, die es nun zu füllen gilt. Erika Paxmann hat drei Kinder. Benni, Anna und Alina. Zwei ihrer Kinder sind schon ausgezogen, innerhalb von vier Monaten. Zurück blieben die Eltern und die 14-jährige Alina. Noch während der Kinder zu Hause wohnten, hat Erika Paxmann sich beruflich weitergebildet und sich neue Aufgaben gesucht. Trotzdem war sie traurig, als die Kinder auszogen. Die Selbständigkeit des Kindes bedeutet, dass auch die Eltern wieder ein unabhängiges Leben führen können. Die Ehepartner habe wieder mehr Zeit füreinander. Das kann auch bisher unbewusste Probleme an den Tag bringen. Viele Partner müssen sich erst wieder an ein Leben zu zweit gewöhnen. Hilfreich ist es, sich schon frühzeitig auf ein Leben „ohne“ Kinder einzustellen. Man kann sich z.B. beruflich fortbilden oder anderen eigenen Interessen nachgehen. Die Umstellung, wenn die Kinder ausziehen, ist dann nicht mehr so groß.</div>
+</div>
+</div>
+</div>
+<div class="right-column">
+<div class="right-column-content" ondragover="allowDrop(event)" ondrop="drop(event)">
+<div class="draggable" draggable="true" id="a1" ondragstart="drag(event)">Keine Zeit für die Kinder.</div>
+<div class="draggable" draggable="true" id="a2" ondragstart="drag(event)">Vorsicht vor zweifelhaften Kontaktagenturen!</div>
+<div class="draggable" draggable="true" id="a3" ondragstart="drag(event)">Liebe fürs Leben muss wachsen.</div>
+<div class="draggable" draggable="true" id="a4" ondragstart="drag(event)">Mehr Zeit für Hobbys.</div>
+<div class="draggable" draggable="true" id="a5" ondragstart="drag(event)">Partnervermittlungen generell empfehlenswert.</div>
+<div class="draggable" draggable="true" id="a6" ondragstart="drag(event)">Wer sucht, der findet.</div>
+<div class="draggable" draggable="true" id="a7" ondragstart="drag(event)">Probleme bei der Kindererziehung.</div>
+<div class="draggable" draggable="true" id="a8" ondragstart="drag(event)">Partnervermittlung per Telefon.</div>
+<div class="draggable" draggable="true" id="a9" ondragstart="drag(event)">Wenn die Kinder aus dem Haus sind.</div>
+<div class="draggable" draggable="true" id="a10" ondragstart="drag(event)">Zeitprobleme in der Familie.</div>
+</div>
+</div>
+</div>
+<div class="button-container">
+<button class="quiz-button" onclick="submitQuiz()">
+<i class="fas fa-paper-plane"></i> Abschicken
+  </button>
+<button class="quiz-button secondary" onclick="resetQuiz()">
+<i class="fas fa-redo"></i> Zurücksetzen
+  </button>
+<a class="quiz-button-link secondary" href="/index2"> <!-- Replace # with your actual home link -->
+<i class="fas fa-home"></i> Zurück zur Startseite
+  </a>
+</div>
+<div id="result"></div>
+<script>
+  const rightColumnContent = document.querySelector(".right-column .right-column-content");
+  const originalAnswerOrder = Array.from(rightColumnContent.querySelectorAll('.draggable'));
+  let selectedDraggable = null; // To store the currently click-selected draggable item
+
+  // --- CLICK-TO-DROP/PICKUP LOGIC ---
+  function selectItem(item) {
+    if (selectedDraggable) {
+      selectedDraggable.classList.remove('selected');
+    }
+    selectedDraggable = item;
+    if (selectedDraggable) {
+      selectedDraggable.classList.add('selected');
+    }
+  }
+
+  function deselectItem() {
+    if (selectedDraggable) {
+      selectedDraggable.classList.remove('selected');
+      selectedDraggable = null;
+    }
+  }
+
+  function handleDraggableClicked(event) {
+    const clickedItem = event.currentTarget;
+    event.stopPropagation(); // Prevent click bubbling to parent elements like answer pool
+
+    if (selectedDraggable === clickedItem) { // Clicking the already selected item
+      deselectItem();
+      // If it was in a target and now deselected by clicking it, move it back to pool
+      if (clickedItem.parentElement.classList.contains('drop-target')) {
+           const parentDropTarget = clickedItem.parentElement;
+           rightColumnContent.appendChild(clickedItem);
+           updateDropTargetVisualState(parentDropTarget);
+           parentDropTarget.classList.remove('correct', 'incorrect'); // Clear feedback
+      }
+    } else { // Clicking a new item, or an unselected item in a target
+      // If the clicked item is currently in a drop target, "pick it up" by moving to pool first
+      if (clickedItem.parentElement.classList.contains('drop-target')) {
+          const parentDropTarget = clickedItem.parentElement;
+          rightColumnContent.appendChild(clickedItem); // Move to pool
+          updateDropTargetVisualState(parentDropTarget);
+          parentDropTarget.classList.remove('correct', 'incorrect'); // Clear feedback
+      }
+      selectItem(clickedItem); // Then select it (it's now in the pool)
+    }
+  }
+
+  function handleDropTargetClicked(event) {
+    const clickedDropTarget = event.currentTarget;
+    event.stopPropagation();
+
+    if (selectedDraggable) { // If an item is selected, try to place it here
+      const existingItemInTarget = clickedDropTarget.querySelector('.draggable');
+      if (existingItemInTarget && existingItemInTarget !== selectedDraggable) {
+        rightColumnContent.appendChild(existingItemInTarget); // Move old item from target back to pool
+        // No need to deselect existingItemInTarget here, as it wasn't the 'selectedDraggable'
+      }
+
+      clickedDropTarget.innerHTML = ''; // Clear target (removes placeholder or old item)
+      clickedDropTarget.appendChild(selectedDraggable); // Place new item
+      updateDropTargetVisualState(clickedDropTarget);
+      clickedDropTarget.classList.remove('correct', 'incorrect'); // Clear any feedback
+      deselectItem(); // Item is placed, so deselect
+    } else if (!selectedDraggable && clickedDropTarget.querySelector('.draggable')) {
+      // No item is selected, AND the clicked drop target HAS an item: "pick up" that item.
+      const itemToPickUp = clickedDropTarget.querySelector('.draggable');
+      rightColumnContent.appendChild(itemToPickUp); // Move it to the pool
+      updateDropTargetVisualState(clickedDropTarget);
+      clickedDropTarget.classList.remove('correct', 'incorrect'); // Clear feedback
+      selectItem(itemToPickUp); // And select it (it's now in the pool)
+    }
+  }
+
+  function handleAnswerPoolClicked(event) {
+    // If click is on the pool itself (not a draggable within it) and an item is selected
+    if (event.target === rightColumnContent && selectedDraggable) {
+      // If selected item is somehow not in pool (e.g. if logic changes), ensure it is
+      if (selectedDraggable.parentElement !== rightColumnContent) {
+           rightColumnContent.appendChild(selectedDraggable);
+      }
+      // The main purpose here: clicking the pool with a selected item deselects it.
+      deselectItem();
+    }
+  }
+
+  function initializeClickInteractions() {
+    document.querySelectorAll('.draggable').forEach(item => {
+      item.addEventListener('click', handleDraggableClicked);
+    });
+    document.querySelectorAll('.drop-target').forEach(target => {
+      target.addEventListener('click', handleDropTargetClicked);
+    });
+    rightColumnContent.addEventListener('click', handleAnswerPoolClicked);
+  }
+
+  // --- DRAG AND DROP LOGIC (MODIFIED) ---
+  function allowDrop(ev) {
+    ev.preventDefault();
+    let potentialDropTarget = ev.target;
+    while(potentialDropTarget && !potentialDropTarget.classList.contains('drop-target') && !potentialDropTarget.classList.contains('right-column-content')) {
+        potentialDropTarget = potentialDropTarget.parentElement;
+    }
+    if (potentialDropTarget && potentialDropTarget.classList.contains('drop-target')) {
+        potentialDropTarget.classList.add("drag-over");
+    }
+  }
+
+  document.addEventListener('dragleave', function(event) {
+    if (event.target.classList && event.target.classList.contains("drop-target")) {
+      event.target.classList.remove("drag-over");
+    }
+  }, false);
+
+  function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+    ev.target.classList.add("dragging");
+    deselectItem(); // Deselect any click-selected item when a drag operation starts
+  }
+
+  document.addEventListener('dragend', function(event) {
+    if (event.target.classList && event.target.classList.contains('draggable')) {
+      event.target.classList.remove('dragging');
+    }
+    document.querySelectorAll('.drop-target.drag-over').forEach(dt => dt.classList.remove('drag-over'));
+  });
+
+  function drop(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    let dropTargetEl = ev.target;
+
+    if (!draggedEl) return; // Safety check
+
+    draggedEl.classList.remove("dragging");
+    document.querySelectorAll('.drop-target.drag-over').forEach(dt => dt.classList.remove('drag-over'));
+
+    while (dropTargetEl &&
+           !dropTargetEl.classList.contains("drop-target") &&
+           !dropTargetEl.classList.contains("right-column-content")) {
+      dropTargetEl = dropTargetEl.parentElement;
+    }
+
+    if (!dropTargetEl) return;
+
+    if (dropTargetEl.classList.contains("drop-target")) {
+      const currentAnswer = dropTargetEl.querySelector(".draggable");
+      if (currentAnswer && currentAnswer !== draggedEl) {
+        rightColumnContent.appendChild(currentAnswer);
+        currentAnswer.classList.remove('selected'); // Ensure item moved back is not selected
+      }
+      dropTargetEl.innerHTML = "";
+      dropTargetEl.appendChild(draggedEl);
+      dropTargetEl.classList.remove("correct", "incorrect");
+      updateDropTargetVisualState(dropTargetEl);
+    }
+    else if (dropTargetEl.classList.contains("right-column-content")) {
+      const originalParent = draggedEl.parentElement; // Get parent BEFORE moving
+      rightColumnContent.appendChild(draggedEl);
+      if (originalParent && originalParent.classList.contains('drop-target')) {
+          updateDropTargetVisualState(originalParent); // Update visual state of original drop target
+          originalParent.classList.remove('correct', 'incorrect');
+      }
+    }
+    deselectItem(); // Deselect any click-selected item after a drop operation
+  }
+
+  function updateDropTargetVisualState(dropTarget) {
+    if (!dropTarget || !dropTarget.classList.contains('drop-target')) return;
+    if (dropTarget.querySelector(".draggable")) {
+      dropTarget.classList.remove("empty-drop-target");
+    } else {
+      dropTarget.classList.add("empty-drop-target");
+    }
+  }
+
+  // --- QUIZ FUNCTIONALITY (MODIFIED RESET) ---
+  function submitQuiz() {
+    let total = 0;
+    let correct = 0;
+    deselectItem(); // Ensure nothing is selected when submitting
+
+    document.querySelectorAll('.question-box').forEach((box) => {
+      total++;
+      const correctAnswer = box.getAttribute("data-correct").trim();
+      const dropTarget = box.querySelector(".drop-target");
+      const droppedDraggable = dropTarget.querySelector(".draggable");
+      dropTarget.classList.remove("correct", "incorrect");
+      if (droppedDraggable) {
+        const selectedText = droppedDraggable.textContent.trim();
+        if (selectedText === correctAnswer) {
+          dropTarget.classList.add("correct");
+          correct++;
+        } else {
+          dropTarget.classList.add("incorrect");
+        }
+      } else {
+        dropTarget.classList.add("incorrect");
+      }
+    });
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML =
+      `Du hast <span class="correct-count">${correct}</span> von <span class="total-count">${total}</span> Fragen richtig beantwortet.`;
+  }
+
+  function resetQuiz() {
+    deselectItem(); // Clear any click-selection first
+
+    document.querySelectorAll('.drop-target').forEach(dt => {
+        const draggable = dt.querySelector('.draggable');
+        if (draggable) {
+            rightColumnContent.appendChild(draggable);
+            draggable.classList.remove('selected'); // Make sure it's not selected style
+        }
+        dt.innerHTML = '';
+        dt.classList.remove('correct', 'incorrect');
+        updateDropTargetVisualState(dt);
+    });
+
+    rightColumnContent.innerHTML = '';
+    originalAnswerOrder.forEach(draggable => {
+        rightColumnContent.appendChild(draggable);
+        draggable.classList.remove('dragging'); // Just in case
+        draggable.classList.remove('selected'); // Ensure no selected style
+    });
+
+    document.getElementById("result").innerHTML = "";
+    document.querySelectorAll('.drop-target').forEach(updateDropTargetVisualState);
+  }
+
+  // --- INITIALIZATION ---
+  document.querySelectorAll('.drop-target').forEach(updateDropTargetVisualState);
+  initializeClickInteractions(); // Add this line to set up click listeners
+
+</script>
+<script>
+let pingTimeout;
+let logoutTimer;
+let warningTimer;
+let countdownTimer;
+let lastPing = 0;
+
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+const WARNING_BEFORE_LOGOUT = 30 * 1000; // 30 seconds
+const warningBox = document.getElementById("warningBox");
+const countdownEl = document.getElementById("countdown");
+
+function sendPing() {
+    const now = Date.now();
+    if (now - lastPing < 10000) return; 
+    lastPing = now;
+    fetch("/ping").catch(() => {});
+}
+
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    clearInterval(countdownTimer);
+
+    warningBox.style.display = "none"; // 🟡 hide warning if active again
+
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Show warning 30s before logout
+    warningTimer = setTimeout(() => {
+        let remaining = 30;
+        warningBox.style.display = "block";
+        countdownEl.textContent = remaining;
+
+        countdownTimer = setInterval(() => {
+            remaining--;
+            countdownEl.textContent = remaining;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+            }
+        }, 1000);
+    }, INACTIVITY_LIMIT - WARNING_BEFORE_LOGOUT);
+
+    // Auto logout
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/");
+    }, INACTIVITY_LIMIT);
+}
+
+// Events
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+window.addEventListener("pageshow", sendPing);
+window.addEventListener("beforeunload", sendPing);
+
+resetTimers();
+</script>
+</body></html>

@@ -1,0 +1,794 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Lesen Teil 3</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<!-- Font Awesome for Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+    :root {
+      --primary-color: #3498db; /* A slightly more vibrant blue */
+      --secondary-color: #2ecc71; /* Green for success */
+      --danger-color: #e74c3c; /* Red for error */
+      --light-bg: #ecf0f1;
+      --dark-text: #2c3e50;
+      --light-text: #ffffff;
+      --border-radius: 10px;
+      --box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      --box-shadow-hover: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark-text);
+      animation: fadeInPage 0.8s ease-out;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      padding: 20px 25px;
+      margin-bottom: 25px;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-size: 26px;
+      font-weight: 600;
+      box-shadow: var(--box-shadow);
+      letter-spacing: 0.5px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @media(min-width: 768px) {
+      .container {
+        flex-direction: row;
+      }
+    }
+
+    .left-column, .right-column {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .quiz-scroll-container, .right-column-content {
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: var(--box-shadow);
+      max-height: 60vh; /* Adjusted for better viewport fit */
+      overflow-y: auto;
+      /* Custom scrollbar styling */
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) var(--light-bg);
+    }
+
+    /* Style for .right-column-content when being dragged over */
+    .right-column-content.drag-over {
+        background-color: #eef8ff; /* Same as .drop-target.drag-over */
+        border: 2px dashed var(--primary-color); /* Add a border to indicate it's a drop zone */
+    }
+
+
+    .quiz-scroll-container::-webkit-scrollbar,
+    .right-column-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    .quiz-scroll-container::-webkit-scrollbar-track,
+    .right-column-content::-webkit-scrollbar-track {
+      background: var(--light-bg);
+      border-radius: var(--border-radius);
+    }
+    .quiz-scroll-container::-webkit-scrollbar-thumb,
+    .right-column-content::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: var(--border-radius);
+      border: 2px solid var(--light-bg);
+    }
+
+
+    .question-box {
+      border: 1px solid #bdc3c7;
+      border-left: 5px solid var(--primary-color);
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #fdfdfd; /* Slightly off-white */
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .question-box:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .question-text {
+      font-size: 0.9em;
+      color: #7f8c8d;
+      margin-top: 10px;
+    }
+
+    .drop-target {
+      background-color: #f9f9f9;
+      padding: 12px;
+      margin-bottom: 10px; /* Space between drop target and question text */
+      border: 2px dashed #cccccc;
+      min-height: 45px;
+      border-radius: 8px;
+      text-align: center;
+      transition: background-color 0.3s, border-color 0.3s;
+      display: flex; /* To center placeholder and dropped item */
+      align-items: center;
+      justify-content: center;
+      position: relative; /* For feedback icons */
+    }
+    .drop-target.empty-drop-target::before {
+      content: "Hier Antwort ablegen";
+      color: #aaa;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+    .drop-target:not(.empty-drop-target)::before {
+      content: ""; /* Clear placeholder when not empty */
+    }
+
+    .drop-target:hover, .drop-target.drag-over {
+      background-color: #eef8ff;
+      border-color: var(--primary-color);
+    }
+
+    .draggable {
+      background-color: #e0e0e0;
+      color: var(--dark-text);
+      margin: 10px 0;
+      padding: 12px 15px;
+      border-radius: 8px;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+      font-size: 0.95em;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .draggable:hover {
+      background-color: #d0d0d0;
+      transform: translateX(3px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .draggable.selected {
+      outline: 2px solid var(--primary-color);
+      box-shadow: 0 0 0 3px var(--primary-color_alpha, rgba(52, 152, 219, 0.3));
+      background-color: #cce7ff;
+    }
+    .draggable.dragging {
+      opacity: 0.6;
+      transform: scale(0.95);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      cursor: grabbing;
+    }
+
+    /* Feedback styling for drop targets */
+    .drop-target.correct {
+      background-color: #e8f5e9; /* Light green */
+      border: 2px solid var(--secondary-color) !important;
+    }
+    .drop-target.correct::after {
+      content: "\f00c"; /* Font Awesome check icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--secondary-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+
+    .drop-target.incorrect {
+      background-color: #ffebee; /* Light red */
+      border: 2px solid var(--danger-color) !important;
+    }
+    .drop-target.incorrect::after {
+      content: "\f00d"; /* Font Awesome times icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--danger-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+    /* Ensure dropped draggable text is visible over feedback */
+    .drop-target .draggable {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      width: calc(100% - 30px); /* Adjust width to make space for icon */
+      padding-right: 35px; /* Space for the potential icon */
+      box-sizing: border-box;
+    }
+    .drop-target.correct .draggable { background-color: var(--secondary-color); }
+    .drop-target.incorrect .draggable { background-color: var(--danger-color); }
+
+
+    .wrong-flag {
+      margin-right: 10px;
+      accent-color: var(--danger-color);
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    .button-container {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .quiz-button {
+      padding: 12px 25px;
+      border: none;
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--box-shadow);
+    }
+    .quiz-button:hover {
+      background-color: #2980b9; /* Darker shade of primary */
+      transform: translateY(-2px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .quiz-button:active {
+      transform: translateY(0px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .quiz-button.secondary {
+      background-color: #7f8c8d; /* A neutral secondary color */
+    }
+    .quiz-button.secondary:hover {
+      background-color: #6c7a89;
+    }
+
+    #result {
+      text-align: center;
+      margin-top: 25px;
+      padding: 15px;
+      font-size: 1.1em;
+      font-weight: 500;
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    #result .correct-count { color: var(--secondary-color); }
+    #result .total-count { color: var(--primary-color); }
+    #result .marked-wrong-count { color: var(--danger-color); }
+
+    #warningBox {
+  display: none;
+  position: fixed;
+  top: 20px;                  
+  left: 50%;                  
+  transform: translateX(-50%);
+  background: #f81d1d;
+  color: #ffffff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 9999;
+}
+
+  </style>
+</head>
+<body>
+<div class="header">Lesen Teil 3: Schlafzug </div>
+<div class="container">
+<div class="left-column">
+<div class="quiz-scroll-container">
+<!-- Questions A-->
+<div class="question-box" data-correct="Sie möchten mit Freunden einen unterhaltsamen Film anschauen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Das Comedy Filmfest tourt auch dieses Jahr durch Deutschland. In Berlin startet es am 14. August mit der belgischen Produktion „Schokolade und Pommes frites“. In dieser romantischen Komödie treffen zwei Charaktere aufeinander, die unterschiedlicher kaum sein könnten: Die zielstrebige, doch ein wenig schüchterne Marie hat sich mit einem Schokoladengeschäft ihren großen Traum verwirklicht. Alles läuft gut, bis auf der anderen Straßenseite der chaotische Lebenskünstler Michel einen Schnellimbiss eröffnet und Maries Leben reichlich durcheinanderwirbelt.</p>
+<h4>Schokolade und Pommes frites“: 14. August, 20 Uhr, Filmtheater Friedrichshain </h4>
+</div>
+</div>
+<!-- Questions B-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Als die Bilder laufen lernten Dieser Band lädt Sie ein, eine bewegte Kinoepoche zu entdecken. In den Jahren von 1895 bis 1930 entwickelte sich das Kino in atemberaubendem Tempo zum Unterhaltungsmedium schlechthin. Autorin Greta Valentino geht zurück bis zu den ersten Filmen der Brüder Lumière und den Anfängen des Westerns und taucht anschließend ein in die schillernden 1920er Jahre, als der Stummfilm seine goldene Ära feierte und Filmpaläste wie Pilze aus dem Boden schossen. Die Autorin studierte Kunstgeschichte in Paris und Amsterdam. Sie veröffentlichte Bücher sowie zahlreiche Artikel über Kunst und Kino.</p>
+</div>
+</div>
+<!-- Questions C-->
+<div class="question-box" data-correct="Sie würden gerne mit Freunden eine mehrtägige Stadttour machen und suchen ein Angebot.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Berlin erleben Unsere Reise führt Sie in eine der abwechslungsreichsten Städte Deutschlands: Berlin. Mit historischen Bauwerken und Museen, breiten Prachtstraßen und Einkaufsmeilen sowie weitläufigen Parks und Gärten hat die Hauptstadt für jeden etwas zu bieten. Reisen Sie bequem mit der Deutschen Bahn und verbringen Sie aufregende Tage in Berlin. Übernachtung mit Frühstück im Hotel. Dauer: ab 4 Tage (Verlängerung möglich) Preis: ab 437 Euro pro Person im Doppelzimmer inklusive An- und Abreise mit der Deutschen Bahn.</p>
+<h4>Mehr Infos unter: www.bergmann-reisen.info</h4>
+</div>
+</div>
+<!-- Questions D-->
+<div class="question-box" data-correct="Eine Bekannte träumt davon, selbst einmal bei einem Film mitzuspielen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h3>Berlin Gendarmenmarkt</h3>
+<p>Im März beginnen die Dreharbeiten für den Film „Berlin Gendarmenmarkt“. Erzählt wird die Geschichte der sechzehnjährigen Ida, die Jugend und Erwachsenwerden im Berlin der Goldenen Zwanziger erlebt und von einer großen Karriere auf der Theaterbühne. Die Romanvorlage für den Film lieferte die Schriftstellerin Marie Franck. Für kleinere oder als Komparsen werden noch Mitwirkende jeden Alters gesucht. Die Gage beträgt 75 € pro Drehtag. Bewerbungsschluss ist der 16. November.</p>
+<h4>Infos und Bewerbung unter: www.film-gendarmenmarkt.info/casting </h4>
+</div>
+</div>
+<!-- Questions E-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Berlin in den zwanziger Jahren Dreigroschenoper, Bubikopf, Dada, Bauhausarchitektur. Dieser Bildband erweckt das Berlin in den 1920ern wieder zum Leben. In dieser Dekade war Berlin eine moderne, von Fortschritt und Freiheit berauschte Weltstadt, die für Künstler und Intellektuelle zum Sehnsuchtsort wurde. Autor Gereon Kutscher nimmt Sie mit auf einen Streifzug durch eine Epoche der kulturellen Blüte und der Lebenslust. Gereon Kutscher: Berlin in den zwanziger Jahren, Hardcover, 126 Seiten, 28 € </p>
+</div>
+</div>
+<!-- Questions F-->
+<div class="question-box" data-correct="Ein Bekannter ist ein paar Tage in Berlin und würde sich gerne verschiedene Kunstausstellungen ansehen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Eine Karte, 30 Häuser Ob Meisterwerke der Kunst, archäologische Schätze aus sechs Jahrtausenden oder technische Errungenschaften – das alles finden Sie in den Berliner Museen. Mit dem Museumspass öffnen sich Ihnen die Türen von über 30 Häusern, darunter die Alte Nationalgalerie, das Pergamonmuseum, das Museum für Naturkunde und die Neue Nationalgalerie. An drei aufeinanderfolgenden Tagen haben Sie damit freien Eintritt.</p>
+<h4>Preis: 29 €, ermäßigt 14,50 € Ticket hier online kaufen: https://shop.nmg.museum</h4>
+</div>
+</div>
+<!-- Questions G-->
+<div class="question-box" data-correct="Sie sind zu einer Kostüm-Party eingeladen und brauchen dafür etwas zum Anziehen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Feiern wie in den Goldenen Zwanzigern Ein ausgelassenes Lebensgefühl und rauschende Nächte. So stellt man sich die 1920er Jahre vor, an die Filme wie „Der große Gatsby und Serien wie „Babylon Berlin' immer wieder erinnern. Gehen Sie auf eine glamouröse Zeitreise und lassen Sie diese Ära wiederauferstehen. Wir haben dafür die passende Kleidung für Sie. In unserem Online-Shop finden Sie alles, was Sie für einen glänzenden Auftritt auf einer Mottoparty brauchen.</p>
+<h4>Paillettenkleider und Kopfschmuck für Damen, Westen und Anzüge für Herren und Accessoires sowie Dekoartikel. www.golden20.com</h4>
+</div>
+</div>
+<!-- Questions H-->
+<div class="question-box" data-correct="Eine Freundin sucht einen Nebenjob. Sie würde dabei gerne viel Zeit draußen verbringen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h3>Stadtführungen in Berlin</h3>
+<p>Sie erzählen gerne spannende Geschichten, sind gut zu Fuß und lieben es, andere für besondere Orte zu begeistern? Dann sind Sie bei uns richtig. Wir bieten Stadtführungen und Stadtrundgänge in Berlin an und suchen für eine langfristige Zusammenarbeit (mindestens ein Jahr) neue Kolleginnen und Kollegen. Wenn Sie gut mit Menschen umgehen können und kommunikativ sind, können Sie direkt bei uns als Stadtführer anfangen. Job auf 450-€-Basis, freie Zeiteinteilung auch für Freiberufler möglich.</p>
+<h4>Interesse? Bewerben Sie sich hier: info@berlintouren-kraemer.net</h4>
+</div>
+</div>
+<!-- Questions I-->
+<div class="question-box" data-correct="Ihr Cousin ist Student und sucht für die Sommermonate einen Nebenjob.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h3>Sie lieben Filme?</h3>
+<p>Dann machen Sie doch das Kino zu Ihrem Arbeitsplatz und werden; Sie Teil unseres Teams! Das Metropolis Filmtheater Altenberg sucht eine Aushilfe als Urlaubsvertretung für die Monate Juli und August, 25 Stunden pro Woche. Zu Ihren Aufgaben gehören u. a. der Verkauf von Kinokarten, Popcorn und Getränken sowie die Einlasskontrolle und die Vorbereitung der Säle. Sie sind volljährig, zuverlässig und bereit, auch am Abend oder Wochenende zu arbeiten? Dann freuen wir uns auf Ihre Bewerbung mit kurzem Anschreiben und Lebenslauf per E-Mail.</p>
+<h4>Metropolis Kino Altenberg info@metropolis-altenberg.net</h4>
+</div>
+</div>
+<!-- Questions J-->
+<div class="question-box" data-correct="Sie möchten eine besondere Stadtführung in Berlin buchen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h3>Das etwas gemütlichere Berlin</h3>
+<p>Der wenig bekannte Berliner Stadtteil Friedenau ist bis heute eher ein Geheimtipp. Das Viertel besticht durch prächtig geschmückte Wohnhäuser, kleine Villen und eine bunt gemischte Gastronomie. Kommen Sie mit auf eine kulinarisch kulturelle Führung durch das charmante, ruhige Friedenau. Erfahren Sie mehr über die berühmten Gesichter dieses Stadtviertels, entdecken Sie wunderschöne Altbauten und lernen Sie die beeindruckenden Görz-Höfe kennen. Unsere erfahrenen Stadtführer zeigen Ihnen außerdem spannende Orte zum Genießen, zum Beispiel ein italienisches Café, eine koreanische Snack-Bar und ein marokkanisches Bistro. 3 Stunden, ca. 3 km zu Fuß Preis: 39 €, ermäßigt 20 € </p>
+<h4>Anmeldung unter: www.friedenau-touren.net</h4>
+</div>
+</div>
+<!-- Questions K-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<p>Wer hat die Kokosnuss geklaut? Bei dieser Tour geht es ins Affenhaus! Beobachte Gorillas, Paviane und Co. bei der Futtersuche und finde heraus, was sie am liebsten fressen. Natürlich bleibt noch Zeit, bei anderen Zoo-Bewohnern vorbeizuschauen. Geh zusammen mit einem Guide auf eine besondere Entdeckungstour durch den Zoo Berlin. Spannende Tier Fakten und exklusive Einblicke in den Zoo-Alltag warten auf dich! Führung für Kinder ab 8 Jahren.</p>
+<h4>Zoologischer Garten Berlin Hardenberg Platz 8, 10787 Berlin Eintritt: Erwachsene 17,50 €, Kinder 9 €</h4>
+</div>
+</div>
+</div>
+</div>
+<div class="right-column">
+<!-- MODIFIED: Added ondragover and ondrop to make this a droppable area -->
+<div class="right-column-content" onclick="clearSelected()" ondragover="allowDrop(event)" ondrop="dropOnAnswersContainer(event)">
+<!-- Answers -->
+<div class="draggable" draggable="true" id="a1" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ein Bekannter ist ein paar Tage in Berlin und würde sich gerne verschiedene Kunstausstellungen ansehen.
+      </div>
+<div class="draggable" draggable="true" id="a2" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Eine Bekannte träumt davon, selbst einmal bei einem Film mitzuspielen.
+      </div>
+<div class="draggable" draggable="true" id="a3" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ein Freund würde sich gerne einen Dokumentarfilm über Tiere ansehen.
+      </div>
+<div class="draggable" draggable="true" id="a4" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Eine Freundin sucht einen Nebenjob. Sie würde dabei gerne viel Zeit draußen verbringen. 
+      </div>
+<div class="draggable" draggable="true" id="a5" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihr Cousin ist Student und sucht für die Sommermonate einen Nebenjob.
+      </div>
+<div class="draggable" draggable="true" id="a6" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihre achtjährige Nichte interessiert sich für Tiere und Natur. Sie möchten ihr zum Geburtstag ein Buch schenken. 
+      </div>
+<div class="draggable" draggable="true" id="a7" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie möchten eine besondere Stadtführung in Berlin buchen. 
+      </div>
+<div class="draggable" draggable="true" id="a8" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie möchten mit Freunden einen unterhaltsamen Film anschauen.
+      </div>
+<div class="draggable" draggable="true" id="a9" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie sind zu einer Kostüm-Party eingeladen und brauchen dafür etwas zum Anziehen. 
+      </div>
+<div class="draggable" draggable="true" id="a10" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie würden gerne mit Freunden eine mehrtägige Stadttour machen und suchen ein Angebot.
+      </div>
+</div>
+</div>
+</div>
+<div class="button-container">
+<button class="quiz-button" id="submitQuizButton">
+<i class="fas fa-paper-plane"></i> Abschicken
+    </button>
+<button class="quiz-button secondary" id="resetQuizButton">
+<i class="fas fa-redo"></i> Zurücksetzen
+    </button>
+<!-- Changed to <a> tag for navigation, href to a generic "index.html" or "#" -->
+<a class="quiz-button secondary" href="/index2" id="homeButton" role="button">
+<i class="fas fa-home"></i> Startseite
+    </a>
+</div>
+<div id="result"></div>
+<script>
+  let selectedAnswer = null;
+  const rightColumnContent = document.querySelector(".right-column-content");
+  const originalAnswerOrder = Array.from(rightColumnContent.querySelectorAll('.draggable')); // Store initial order for reset
+
+  // MODIFIED: allowDrop to correctly identify parent droppable container
+  function allowDrop(ev) {
+    ev.preventDefault();
+    let droppableContainer = ev.target;
+    // Traverse up to find the actual droppable container (.drop-target or .right-column-content)
+    while (droppableContainer && droppableContainer !== document.body &&
+           !droppableContainer.classList.contains("drop-target") &&
+           !droppableContainer.classList.contains("right-column-content")) {
+        droppableContainer = droppableContainer.parentElement;
+    }
+
+    if (droppableContainer && (droppableContainer.classList.contains("drop-target") || droppableContainer.classList.contains("right-column-content"))) {
+        droppableContainer.classList.add("drag-over");
+    }
+  }
+
+  function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+    ev.target.classList.add("dragging");
+  }
+
+  document.addEventListener('dragleave', function(event) {
+    if (event.target.classList && (event.target.classList.contains("drop-target") || event.target.classList.contains("right-column-content"))) {
+        if (!event.target.contains(event.relatedTarget) && event.target !== event.relatedTarget) {
+             event.target.classList.remove("drag-over");
+        } else if (event.relatedTarget === null) { 
+            event.target.classList.remove("drag-over");
+        }
+    }
+  }, false);
+  
+  document.addEventListener('dragend', function(event) {
+    if (event.target.classList && event.target.classList.contains('draggable')) {
+      event.target.classList.remove('dragging');
+    }
+    document.querySelectorAll('.drop-target.drag-over, .right-column-content.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+  });
+
+  // MODIFIED: drop function for question slots
+  function drop(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    let dropTarget = ev.target;
+
+    while (dropTarget && !dropTarget.classList.contains("drop-target")) {
+        dropTarget = dropTarget.parentElement;
+    }
+    
+    if (!dropTarget || !draggedEl) return;
+
+    dropTarget.classList.remove("drag-over");
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; 
+
+    const currentAnswerInTarget = dropTarget.querySelector(".draggable");
+    if (currentAnswerInTarget && currentAnswerInTarget !== draggedEl) {
+      rightColumnContent.appendChild(currentAnswerInTarget);
+      showCheckbox(currentAnswerInTarget);
+    }
+    
+    dropTarget.innerHTML = ""; 
+    dropTarget.appendChild(draggedEl);
+    hideCheckbox(draggedEl);
+    updateDropTargetState(dropTarget);
+
+    if (originalParentOfDraggedEl &&
+        originalParentOfDraggedEl.classList.contains("drop-target") &&
+        originalParentOfDraggedEl !== dropTarget) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+  // NEW: Function to handle drops onto the answers container
+  function dropOnAnswersContainer(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    const answersContainer = ev.currentTarget; 
+
+    if (!draggedEl || !answersContainer) return;
+
+    answersContainer.classList.remove("drag-over");
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; 
+
+    answersContainer.appendChild(draggedEl);
+    showCheckbox(draggedEl);
+
+    if (originalParentOfDraggedEl && originalParentOfDraggedEl.classList.contains("drop-target")) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+
+  function hideCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "none";
+  }
+
+  function showCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "inline-block";
+  }
+
+  function selectAnswer(el, event) {
+    event.stopPropagation(); 
+    if (selectedAnswer === el) { 
+      el.classList.remove("selected");
+      selectedAnswer = null;
+    } else {
+      if (selectedAnswer) selectedAnswer.classList.remove("selected");
+      selectedAnswer = el;
+      el.classList.add("selected");
+    }
+  }
+
+  // MODIFIED: clickDrop function
+  function clickDrop(targetDropzone) {
+    if (selectedAnswer) {
+      const originalParentOfSelectedAnswer = selectedAnswer.parentElement;
+
+      const currentAnswerInDropzone = targetDropzone.querySelector(".draggable");
+      if (currentAnswerInDropzone && currentAnswerInDropzone !== selectedAnswer) {
+        rightColumnContent.appendChild(currentAnswerInDropzone);
+        showCheckbox(currentAnswerInDropzone);
+      }
+      
+      targetDropzone.innerHTML = ""; 
+      targetDropzone.appendChild(selectedAnswer);
+      hideCheckbox(selectedAnswer);
+      updateDropTargetState(targetDropzone);
+
+      if (originalParentOfSelectedAnswer &&
+          originalParentOfSelectedAnswer.classList.contains("drop-target") &&
+          originalParentOfSelectedAnswer !== targetDropzone) {
+          updateDropTargetState(originalParentOfSelectedAnswer);
+      }
+
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function clearSelected() {
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function updateDropTargetState(dropTarget) {
+    if (!dropTarget || !dropTarget.classList.contains('drop-target')) return;
+    
+    if (dropTarget.querySelector(".draggable")) {
+      dropTarget.classList.remove("empty-drop-target");
+    } else {
+      dropTarget.classList.add("empty-drop-target");
+    }
+  }
+
+  function getDraggableText(draggableElement) {
+    const clone = draggableElement.cloneNode(true);
+    const checkbox = clone.querySelector('.wrong-flag');
+    if (checkbox) {
+        checkbox.remove();
+    }
+    return clone.textContent.trim();
+  }
+
+  function submitQuiz() {
+    let total = 0, correct = 0;
+    document.querySelectorAll('.question-box').forEach((box) => {
+      total++;
+      const correctAnswerText = box.getAttribute("data-correct").trim();
+      const dropTarget = box.querySelector(".drop-target");
+      const droppedDraggable = dropTarget.querySelector(".draggable");
+      
+      dropTarget.classList.remove("correct", "incorrect"); 
+
+      if (droppedDraggable) { 
+        const selectedText = getDraggableText(droppedDraggable); 
+        if (correctAnswerText === "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        } else {
+          if (selectedText === correctAnswerText) {
+            dropTarget.classList.add("correct");
+            correct++;
+          } else {
+            dropTarget.classList.add("incorrect");
+          }
+        }
+      } else { 
+        if (correctAnswerText !== "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        }
+      }
+      updateDropTargetState(dropTarget); 
+    });
+
+    let wrongMarkedCorrect = 0, wrongMarkedTotal = 0;
+    rightColumnContent.querySelectorAll('.draggable').forEach((answerEl) => {
+      const text = getDraggableText(answerEl); 
+      const checkbox = answerEl.querySelector('.wrong-flag');
+      
+      const isACorrectAnswerOptionForAnyQuestion = Array.from(document.querySelectorAll('.question-box'))
+        .some(box => {
+            const qCorrectText = box.getAttribute('data-correct').trim();
+            return qCorrectText !== "__NO_CORRECT_ANSWER__" && qCorrectText === text;
+        });
+      
+      if (!isACorrectAnswerOptionForAnyQuestion) { 
+        wrongMarkedTotal++; 
+        if (checkbox.checked) {
+          wrongMarkedCorrect++; 
+        }
+      }
+    });
+
+    const questionsWithNoAnswer = Array.from(document.querySelectorAll('.question-box'))
+                                      .filter(box => box.getAttribute('data-correct').trim() === "__NO_CORRECT_ANSWER__").length;
+    const scorableTotal = total - questionsWithNoAnswer;
+
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML =
+      `<span class="correct-count">✅ ${correct}</span> von <span class="total-count">${scorableTotal}</span> bewertbaren Fragen richtig. | ` + 
+      `<span class="marked-wrong-count">🚫 Falsch-Antworten korrekt markiert: ${wrongMarkedCorrect}</span> von ${wrongMarkedTotal}.`;
+  }
+
+  function resetQuiz() {
+    document.querySelectorAll('.drop-target').forEach(dt => {
+        const draggable = dt.querySelector('.draggable');
+        if (draggable) {
+            rightColumnContent.appendChild(draggable); 
+            showCheckbox(draggable); 
+        }
+        dt.innerHTML = ''; 
+        dt.classList.remove('correct', 'incorrect'); 
+        updateDropTargetState(dt); 
+    });
+
+    rightColumnContent.innerHTML = ''; 
+    originalAnswerOrder.forEach(draggable => {
+        rightColumnContent.appendChild(draggable); 
+        draggable.classList.remove('selected', 'dragging'); 
+        showCheckbox(draggable); 
+        const checkbox = draggable.querySelector('.wrong-flag');
+        if (checkbox) checkbox.checked = false; 
+    });
+    
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove('selected');
+      selectedAnswer = null;
+    }
+
+    document.getElementById("result").innerHTML = ""; 
+  }
+
+  document.getElementById('submitQuizButton').addEventListener('click', submitQuiz);
+  document.getElementById('resetQuizButton').addEventListener('click', resetQuiz);
+
+  document.querySelectorAll('.drop-target').forEach(updateDropTargetState);
+</script>
+<script>
+let pingTimeout;
+let logoutTimer;
+let warningTimer;
+let countdownTimer;
+let lastPing = 0;
+
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+const WARNING_BEFORE_LOGOUT = 30 * 1000; // 30 seconds
+const warningBox = document.getElementById("warningBox");
+const countdownEl = document.getElementById("countdown");
+
+function sendPing() {
+    const now = Date.now();
+    if (now - lastPing < 10000) return; 
+    lastPing = now;
+    fetch("/ping").catch(() => {});
+}
+
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    clearInterval(countdownTimer);
+
+    warningBox.style.display = "none"; // 🟡 hide warning if active again
+
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Show warning 30s before logout
+    warningTimer = setTimeout(() => {
+        let remaining = 30;
+        warningBox.style.display = "block";
+        countdownEl.textContent = remaining;
+
+        countdownTimer = setInterval(() => {
+            remaining--;
+            countdownEl.textContent = remaining;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+            }
+        }, 1000);
+    }, INACTIVITY_LIMIT - WARNING_BEFORE_LOGOUT);
+
+    // Auto logout
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/");
+    }, INACTIVITY_LIMIT);
+}
+
+// Events
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+window.addEventListener("pageshow", sendPing);
+window.addEventListener("beforeunload", sendPing);
+
+resetTimers();
+</script>
+</body></html>

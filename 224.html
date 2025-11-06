@@ -1,0 +1,219 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Andreas teil: 2</title>
+<style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f1f1f1;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: row;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .text-section {
+      flex: 1;
+      padding: 20px;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+    }
+
+    .quiz-section {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .question-card {
+      background: #e9f0f7;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+    }
+
+    .question-card h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .question-card label {
+      display: block;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .result {
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    .correct {
+  background-color: #d4edda;
+  border: 1px solid #28a745;
+}
+
+.incorrect {
+  background-color: #f8d7da;
+  border: 1px solid #dc3545;
+}
+
+  </style>
+</head>
+<body>
+<div class="container">
+<!-- Left: Text -->
+<div class="text-section">
+<h1>LEBEN</h1>
+<h3>Das machen wir mit links</h3>
+<p>Über eine Million Österreicher sind Linkshänder – und langsam setzen sie sich durch in der Rechtshänder – Welt Schau der macht das mit der linken Hand. Solche und ähnliche Kommentare hörte der gelernte Porzellanformer Gerhard Spur (51) von Besuchern, die die Porzellanmanufaktur im Wiener Augarten besichtigten und dem Künstler beim Herstellen eines Kunstwerkes zusahen – allerdings nur früher, als nur die rechte Hand die so genannte schöne Hand war, die man zum Arbeiten. Schreiben usw. verwenden durfte. Heute ist es offensichtlich normal, dass jemand mit der linken Hand Vasen aus Porzellan bearbeitet. Gerhard Spur wird jedenfalls nicht mehr bestaunt.</p>
+<h3>Links arbeiten</h3>
+<p>Gut 15 Prozent der Menschheit sind Linkshänder. Über die Gründe für Linkshändigkeit ist sich die Wissenschaft nicht einig. Fest steht nur. Wenn Kinder gezwungen werden, statt mit der linken Hand mit der rechten Hand zu schreiben, hat dies schwerwiegende Folgen. Dies führtzu Knoten im Kopf so die Linkshänder-Expertin Johanna Barbara Sattier. Spätestens wenn umgeschulte Kinder mit dem Lesen und Schreiben beginnen, macht sich das Chaos im Kopf bemerkbar. In der Schule ist es mittlerweile verboten, Linkshänder auf rechts umzuschulen. Probleme machen allerdings noch Arbeitsplätze, die nicht für Linkshänder geeignet sind, erklärt Erich Pospischill, Leiter des arbeitsmedizinischen Zentrums Mödling: Schon die Computermaus auf der falschen Seite führt zu rascherer Ermüdung, weil das Gehirn durch das ständige Umdenken zusätzlich belastet wird.</p>
+<h3>Lösungen im Betrieb</h3>
+<p>Die Maschine, an der Slata Tanasic tagtäglich arbeitet, funktioniert von links unten nach rechts oben. Genau verkehrt für die 41- Jährige, die seit 21 Jahren im Seibert-Elektronikwerk arbeitet. Ich habe gesagt, dass ich mit der Maschine so nicht arbeiten kann. Und das wurde akzeptiert. Slata wurde in einen anderen Arbeitsbereich versetzt und macht jetzt Arbeiten, die auch mit der linken Hand möglich sind: Montieren und Vorbereiten der Bauteile.</p>
+<h3>Eltern können helfen</h3>
+<p>Bei Kleinkindern lässt sich nicht sofort erkennen, ob sie links- oder rechtshändig sind, sagt die Expertin Sattler: Viele Kinder ahmen zuerst die Tätigkeiten in unserer rechtshändigen Welt nach. Deshalb rät Sattler den Eltern, ihren Kinder beim Herausfinden ihrer Händigkeit zu helfen: Blumen gießen mit einer kleinen Kanne, einen Ball werfen – bei diesen Handlungen greifen Kinder automatisch mit der starken Hand zu. Und dann sollten Eltern bereits erste Konsequenzen ziehen.</p>
+</div>
+<!-- Right: Quiz -->
+<div class="quiz-section">
+<form id="quizForm">
+<div class="question-card">
+<h3>1. Gerhard Spur   </h3>
+<label><input name="q1" type="radio" value="a"/> arbeitet heute nur noch mit der rechten Hand.</label>
+<label><input name="q1" type="radio" value="b"/> arbeitet früher mit Linkshändern zusammen.</label>
+<label><input name="q1" type="radio" value="c"/> stellt seine Kunstwerke mit der linken Hand her.</label>
+</div>
+<div class="question-card">
+<h3>2. Heute ist wissenschaftlich bewiesen, dass   </h3>
+<label><input name="q2" type="radio" value="a"/> es eine klare Ursache für Linkshändigkeit gibt.</label>
+<label><input name="q2" type="radio" value="b"/> Linkshänder besser im Lesen und Schreiben sind.</label>
+<label><input name="q2" type="radio" value="c"/> Linkshänder das Schreiben mit der rechten Hand schadet.</label>
+</div>
+<div class="question-card">
+<h3>3. Erich Pospischill meint, dass   </h3>
+<label><input name="q3" type="radio" value="a"/> es für Linkshänder sehr oft keine geeigneten Arbeitsplätze gibt.</label>
+<label><input name="q3" type="radio" value="b"/> Linkshänder vor allem im Computerbereich eingesetzt werden.</label>
+<label><input name="q3" type="radio" value="c"/> Linkshänder wesentlich öfter krank sind.</label>
+</div>
+<div class="question-card">
+<h3>4. Frau Slata Tanasic  </h3>
+<label><input name="q4" type="radio" value="a"/> arbeitet seit 41 Jahren in der gleichen Firma.</label>
+<label><input name="q4" type="radio" value="b"/> erledigt alle Arbeiten mit der linken Hand.</label>
+<label><input name="q4" type="radio" value="c"/> ist seit 21 Jahren an der gleichen Maschine beschäftigt.</label>
+</div>
+<div class="question-card">
+<h3>5.  Laut der Linkshänder-Expertin Johanna Sattier</h3>
+<label><input name="q5" type="radio" value="a"/> haben Linkshänder meistens auch linkshändige Eltern.</label>
+<label><input name="q5" type="radio" value="b"/> kann man Linkshändigkeit bei kleinen Kindern nicht gleich entdecken.</label>
+<label><input name="q5" type="radio" value="c"/> sind linkshändige Kinder besonders gut im Ballspielen.</label>
+</div>
+<button onclick="checkAnswers()" type="button">Antworten prüfen</button>
+<div class="result" id="result"></div>
+<div style="padding: 10px 20px; font-size: 16px; background-color: lab(42.45% 44.97 -83.12); color: white; border-radius: 8px; text-align: center;">
+<a href="/index1" style="text-decoration: none;">
+<div style="padding: 10px 20px; font-size: 16px; background-color: lab(42.45% 44.97 -83.12); color: white; border-radius: 8px; text-align: center;">
+                Zurück zur Startseite
+              </div>
+</a>
+</div>
+</form>
+</div>
+</div>
+<script>
+    function checkAnswers() {
+      const answers = {
+        q1: "c",
+        q2: "c",
+        q3: "a",
+        q4: "b",
+        q5: "b"
+      };
+  
+      let score = 0;
+      let total = Object.keys(answers).length;
+  
+      for (let q in answers) {
+        const correct = answers[q];
+        const selected = document.querySelector(`input[name="${q}"]:checked`);
+        const questionCard = document.querySelector(`[name="${q}"]`).closest(".question-card");
+  
+        // Remove previous styles
+        questionCard.classList.remove("correct", "incorrect");
+  
+        if (selected) {
+          if (selected.value === correct) {
+            score++;
+            questionCard.classList.add("correct");
+          } else {
+            questionCard.classList.add("incorrect");
+          }
+        } else {
+          questionCard.classList.add("incorrect");
+        }
+  
+        // Highlight the correct answer in green
+        const allOptions = document.querySelectorAll(`input[name="${q}"]`);
+        allOptions.forEach(opt => {
+          if (opt.value === correct) {
+            opt.parentElement.style.fontWeight = "bold";
+            opt.parentElement.style.color = "green";
+          }
+        });
+      }
+  
+      document.getElementById("result").innerText =
+        `Du hast ${score} von ${total} Fragen richtig beantwortet.`;
+        
+    }
+  </script>
+<script>
+let pingTimeout;
+let logoutTimer;
+const INACTIVITY_LIMIT = 6 * 60 * 1000; // 6 minutes
+
+function sendPing() {
+    fetch("/ping").catch(() => {});
+}
+
+// Reset timers when user interacts
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+
+    // Ping immediately and schedule another one in 1 min if idle
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Auto logout after 6 min inactivity
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/"); // redirect to homepage/login
+    }, INACTIVITY_LIMIT);
+}
+
+// Events that count as activity
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+// Start timers when page loads
+resetTimers();
+</script>
+</body></html>

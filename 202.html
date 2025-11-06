@@ -1,0 +1,838 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Lesen Teil 3</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<!-- Font Awesome for Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+    :root {
+      --primary-color: #3498db; /* A slightly more vibrant blue */
+      --secondary-color: #2ecc71; /* Green for success */
+      --danger-color: #e74c3c; /* Red for error */
+      --light-bg: #ecf0f1;
+      --dark-text: #2c3e50;
+      --light-text: #ffffff;
+      --border-radius: 10px;
+      --box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      --box-shadow-hover: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark-text);
+      animation: fadeInPage 0.8s ease-out;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      padding: 20px 25px;
+      margin-bottom: 25px;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-size: 26px;
+      font-weight: 600;
+      box-shadow: var(--box-shadow);
+      letter-spacing: 0.5px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @media(min-width: 768px) {
+      .container {
+        flex-direction: row;
+      }
+    }
+
+    .columns-container {
+       display: flex;
+       gap: 20px;
+       align-items: stretch; /* Ensures both columns align vertically */
+    }
+
+    .left-column, .right-column {
+       flex: 1;
+       display: flex;
+       flex-direction: column;
+    }
+
+    .quiz-scroll-container, .right-column-content {
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: var(--box-shadow);
+      max-height: 60vh; /* Adjusted for better viewport fit */
+      overflow-y: auto;
+      /* Custom scrollbar styling */
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) var(--light-bg);
+    }
+
+    /* Style for .right-column-content when being dragged over */
+    .right-column-content.drag-over {
+        background-color: #eef8ff; /* Same as .drop-target.drag-over */
+        border: 2px dashed var(--primary-color); /* Add a border to indicate it's a drop zone */
+    }
+
+    .right-column-content {
+        min-height: 300px; /* or whatever minimum you want */
+        border: 1px dashed #ccc; /* optional: visual aid */
+        padding: 10px;
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+    }
+
+
+
+    .quiz-scroll-container::-webkit-scrollbar,
+    .right-column-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    .quiz-scroll-container::-webkit-scrollbar-track,
+    .right-column-content::-webkit-scrollbar-track {
+      background: var(--light-bg);
+      border-radius: var(--border-radius);
+    }
+    .quiz-scroll-container::-webkit-scrollbar-thumb,
+    .right-column-content::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: var(--border-radius);
+      border: 2px solid var(--light-bg);
+    }
+
+
+    .question-box {
+      border: 1px solid #bdc3c7;
+      border-left: 5px solid var(--primary-color);
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #fdfdfd; /* Slightly off-white */
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .question-box:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .question-text {
+      font-size: 0.9em;
+      color: #7f8c8d;
+      margin-top: 10px;
+    }
+
+    .drop-target {
+      background-color: #f9f9f9;
+      padding: 12px;
+      margin-bottom: 10px; /* Space between drop target and question text */
+      border: 2px dashed #cccccc;
+      min-height: 45px;
+      border-radius: 8px;
+      text-align: center;
+      transition: background-color 0.3s, border-color 0.3s;
+      display: flex; /* To center placeholder and dropped item */
+      align-items: center;
+      justify-content: center;
+      position: relative; /* For feedback icons */
+    }
+    .drop-target.empty-drop-target::before {
+      content: "Hier Antwort ablegen";
+      color: #aaa;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+    .drop-target:not(.empty-drop-target)::before {
+      content: ""; /* Clear placeholder when not empty */
+    }
+
+    .drop-target:hover, .drop-target.drag-over {
+      background-color: #eef8ff;
+      border-color: var(--primary-color);
+    }
+
+    .draggable {
+      background-color: #e0e0e0;
+      color: var(--dark-text);
+      margin: 10px 0;
+      padding: 12px 15px;
+      border-radius: 8px;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+      font-size: 0.95em;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .draggable:hover {
+      background-color: #d0d0d0;
+      transform: translateX(3px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .draggable.selected {
+      outline: 2px solid var(--primary-color);
+      box-shadow: 0 0 0 3px var(--primary-color_alpha, rgba(52, 152, 219, 0.3));
+      background-color: #cce7ff;
+    }
+    .draggable.dragging {
+      opacity: 0.6;
+      transform: scale(0.95);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      cursor: grabbing;
+    }
+
+    /* Feedback styling for drop targets */
+    .drop-target.correct {
+      background-color: #e8f5e9; /* Light green */
+      border: 2px solid var(--secondary-color) !important;
+    }
+    .drop-target.correct::after {
+      content: "\f00c"; /* Font Awesome check icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--secondary-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+
+    .drop-target.incorrect {
+      background-color: #ffebee; /* Light red */
+      border: 2px solid var(--danger-color) !important;
+    }
+    .drop-target.incorrect::after {
+      content: "\f00d"; /* Font Awesome times icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--danger-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+    /* Ensure dropped draggable text is visible over feedback */
+    .drop-target .draggable {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      width: calc(100% - 30px); /* Adjust width to make space for icon */
+      padding-right: 35px; /* Space for the potential icon */
+      box-sizing: border-box;
+    }
+    .drop-target.correct .draggable { background-color: var(--secondary-color); }
+    .drop-target.incorrect .draggable { background-color: var(--danger-color); }
+
+
+    .wrong-flag {
+      margin-right: 10px;
+      accent-color: var(--danger-color);
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    .button-container {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .quiz-button {
+      padding: 12px 25px;
+      border: none;
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--box-shadow);
+    }
+    .quiz-button:hover {
+      background-color: #2980b9; /* Darker shade of primary */
+      transform: translateY(-2px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .quiz-button:active {
+      transform: translateY(0px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .quiz-button.secondary {
+      background-color: #7f8c8d; /* A neutral secondary color */
+    }
+    .quiz-button.secondary:hover {
+      background-color: #6c7a89;
+    }
+
+    #result {
+      text-align: center;
+      margin-top: 25px;
+      padding: 15px;
+      font-size: 1.1em;
+      font-weight: 500;
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    #result .correct-count { color: var(--secondary-color); }
+    #result .total-count { color: var(--primary-color); }
+    #result .marked-wrong-count { color: var(--danger-color); }
+
+  </style>
+</head>
+<body>
+<div class="header">Lesen Teil 3:</div>
+<div class="container">
+<div class="left-column">
+<div class="quiz-scroll-container">
+<!-- Questions -->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__" style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;">
+<h4>Feiern im<br/>
+            Cafe - Restaurant</h4>
+<h2>WEBERKNECHT</h2>
+<p>Großer Festsaal (bis zu 100 Gäste) mit Musikanlage, Buffet und Getränke alles inklusive ab 198 Euro<br/>
+            Bei mitgebrachten Speisen und Getränken zahlen Sie nur Saalmiete.</p>
+<h4>Nähere Informationen unter:<br/>
+                324 25 54</h4>
+</div>
+</div>
+<div class="question-box" data-correct="Ihre Freund wollen einen Sprachkurs in Spanien machen und ihre Kinder mitnehmen." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h5>Noch 3 freie Plätze im</h5>
+<h2>Privatkindergarten BAMBI!!!</h2>
+<p>Pädagogisches Top-Team<br/>
+           Helle, kindergerechte Räume<br/>
+           Eigene Spielwiese<br/>
+           Ganzjährig geöffnet<br/>
+           Betreuung Mo-Fr 6-18 Uhr</p>
+<h4>Wir freuen uns auf Ihren Liebling!<br/>
+            Tel: 124 53 24</h4>
+</div>
+</div>
+<div class="question-box" data-correct="Sie wollen Ihrer Kursleiterin eine Kursabschlussreise vorschlagen." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h2>KINO - CENTER<br/>
+            31 2 45 89</h2>
+<h4>Saal 1.<br/>
+            15.34 ----- Shrek 2<br/>
+            17.00 ----- (im englichen Untertitel)</h4>
+<h4>Saal 2.<br/>
+            18.00 ----- Das Komplett<br/>
+            20.45</h4>
+<h4>Saal 3.<br/>
+            14.30 ----- (Mäusejagd ab 6 jahren)</h4>
+</div>
+</div>
+<div class="question-box" data-correct="Ihr Auto ist kaputt und Sie brauchen jemanden, der es repariert." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h2>AIRPLUS</h2>
+<p>(Austrian Airlines/Diners Club Kreditkarte)<br/>
+           sucht</p>
+<h3>Sachbearbeiter(in)</h3>
+<p>für Kundendienst<br/>
+           22- bis 26-Jährige mit Maturabschluss und Berufserfahrung (Computer-Kenntnisse)<br/>
+           Sind Sie genau und zuverlässig und haben Interesse an telefonischem Kontakt mit Kunden?<br/>
+           dann sollen Sie und Ihre Bewerbungsunterlagen mit Foto nachzusenden</p>
+<h4>AirPlus, A-1107 Wien, Fontanastraße 1<br/>
+            Tel.: (01) 1766/3661</h4>
+</div>
+</div>
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__" style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h2>23-jährige Psychologie-Studentin</h2>
+<p>Zeitlich flexibel und im Umgang mit Kindern erfahren, kümmern sich stundenweise gerne um Ihre Kinder!</p>
+<h3>10 Euro/Stunde</h3>
+        Ich freue mich auf Ihren Anruf.
+        <h4>Lisa, Tel: 312 84 23</h4>
+</div>
+</div>
+<!-- THIS QUESTION HAS NO CORRECT ANSWER -->
+<div class="question-box" data-correct="Ihr Fernseher ist kaputt. Sie wollen ihn reparieren lassen." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h2>Studentenhit in Wien!</h2>
+<p>1-Zimmer-Wohnung, 30qm, Bad/WC, Uni-Nähe<br/>
+          Keine Ablöse, befristet für 1 Jahr<br/>
+          Miete: 300 Euro/mtl. (inkl. Betriebskosten)</p>
+<h3>Uni-Real, 5533-D</h3>
+</div>
+</div>
+<div class="question-box" data-correct="Sie suchen ein Geschenk für ein 6- jähriges Kind." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h2>Studenteneigentum</h2>
+<h1>A-1030 Wien, Hangmayerstraße</h1>
+<p>1-Zi.-Wohnung, Küche, Bad, Balkon, 29m²<br/>
+           Ruhige Lage, sof. anrufen, KP 50.000 Euro</p>
+<p>Telefon 388044</p>
+</div>
+</div>
+<div class="question-box" data-correct="Eine Bekannte hat eine neue Wohnung. Sie möchten ihr etwas für die Küche schenken." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h1>KINO UNTER STERNEN</h1>
+<h3>OPEN AIR IM AUGARTEN</h3>
+<p>Der Film heute</p>
+<h2>MEET ME IN ST.LOUIS</h2> 
+          Musical über die 4 Jahreszeiten einer Familie, Mit Judy Garland, 21:30 Uhr
+    </div>
+</div>
+<!-- THIS QUESTION HAS NO CORRECT ANSWER -->
+<div class="question-box" data-correct="Sie haben sich beim Tennis den Fuß verletzt und brauchen einen Arzt." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h2>STADTKINO</h2>
+<h5>sucht</h5>
+<p>Für die Sommermonate Jul. - Sep. Junge Mitarbeiterinnen für den Kartenverkauf und das Buffet<br/>
+           10 Std./Woche, abends, guter Verdienst</p>
+<h5>nähere Auskünfte Karin Moor, Tel.: 712 6276</h5>
+</div>
+</div>
+<!-- THIS QUESTION HAS NO CORRECT ANSWER -->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__" style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h1>PC-Kenntnisse notwendig</h1>
+<p>steht das auch in der Anzeige für Ihren Traumjob?</p>
+<h2>Kein Problem!</h2>
+<h4>Die<br/>
+            Volkshochschule siemmering<br/>
+            bietet</h4>
+<h2>berufsorientierte PC-Kurse</h2>
+              (Abend-/Wochenendkurse)
+    </div>
+</div>
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__" style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h3>Familie sucht</h3>
+<h1>Babysitterin<br/>
+            Kindermädchen</h1>
+<p>(Zuverlässig, erfahren, freundlich)<br/>
+            Arbeitszeit nach Absprache</p>
+<h5>Kontakt: Familie Hock, Tel. 217 354</h5>
+</div>
+</div>
+<div class="question-box" data-correct="Ihre Tante ist operiert worden. Jetzt ist sie wieder zu Hause und braucht spezielles Essen." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<p>Sie yollen ein unvergessliches Fest feiern?<br/>
+             Dann holen Sie den</p>
+<h1>Partyservice!</h1>
+<p>Wir kümmern uns um Speisen und Getränke für jedes Fest,<br/>
+             Geburtstag, Hochzeit, Kinderparties, etc.<br/>
+             Reservierungen spätestens 4 Wochen vor dem Fest!</p>
+<h5>Tel. 234 64 88 Frau Kern</h5>
+</div>
+</div>
+</div>
+</div>
+<div class="right-column">
+<!-- MODIFIED: Added ondragover and ondrop to make this a droppable area -->
+<div class="right-column-content" onclick="clearSelected()" ondragover="allowDrop(event)" ondrop="dropOnAnswersContainer(event)">
+<!-- Answers -->
+<div class="draggable" draggable="true" id="a1" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihre Freund wollen einen Sprachkurs in Spanien machen und ihre Kinder mitnehmen.
+      </div>
+<div class="draggable" draggable="true" id="a2" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihr Auto ist kaputt und Sie brauchen jemanden, der es repariert.
+      </div>
+<div class="draggable" draggable="true" id="a3" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie wollen mit einem Videoprogramm Deutsch lernen.
+      </div>
+<div class="draggable" draggable="true" id="a4" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie wollen Ihrer Kursleiterin eine Kursabschlussreise vorschlagen.
+      </div>
+<div class="draggable" draggable="true" id="a5" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihr Fernseher ist kaputt. Sie wollen ihn reparieren lassen.
+      </div>
+<div class="draggable" draggable="true" id="a6" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Eine Bekannte hat eine neue Wohnung. Sie möchten ihr etwas für die Küche schenken.
+      </div>
+<div class="draggable" draggable="true" id="a7" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie suchen ein Geschenk für ein 6- jähriges Kind.
+      </div>
+<div class="draggable" draggable="true" id="a8" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihr Kind ist krank. Sie suchen einen Kinderarzt.
+      </div>
+<div class="draggable" draggable="true" id="a9" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihre Tante ist operiert worden. Jetzt ist sie wieder zu Hause und braucht spezielles Essen.
+      </div>
+<div class="draggable" draggable="true" id="a10" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie haben sich beim Tennis den Fuß verletzt und brauchen einen Arzt.
+      </div>
+</div>
+</div>
+</div>
+<div class="button-container">
+<button class="quiz-button" id="submitQuizButton">
+<i class="fas fa-paper-plane"></i> Abschicken
+    </button>
+<button class="quiz-button secondary" id="resetQuizButton">
+<i class="fas fa-redo"></i> Zurücksetzen
+    </button>
+<!-- Changed to <a> tag for navigation, href to a generic "index.html" or "#" -->
+<a class="quiz-button secondary" href="/index1" id="homeButton" role="button">
+<i class="fas fa-home"></i> Startseite
+    </a>
+</div>
+<div id="result"></div>
+<script>
+  let selectedAnswer = null;
+  const rightColumnContent = document.querySelector(".right-column-content");
+  const originalAnswerOrder = Array.from(rightColumnContent.querySelectorAll('.draggable')); // Store initial order for reset
+
+  // MODIFIED: allowDrop to correctly identify parent droppable container
+  function allowDrop(ev) {
+    ev.preventDefault();
+    let droppableContainer = ev.target;
+    // Traverse up to find the actual droppable container (.drop-target or .right-column-content)
+    while (droppableContainer && droppableContainer !== document.body &&
+           !droppableContainer.classList.contains("drop-target") &&
+           !droppableContainer.classList.contains("right-column-content")) {
+        droppableContainer = droppableContainer.parentElement;
+    }
+
+    if (droppableContainer && (droppableContainer.classList.contains("drop-target") || droppableContainer.classList.contains("right-column-content"))) {
+        droppableContainer.classList.add("drag-over");
+    }
+  }
+
+  function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+    ev.target.classList.add("dragging");
+    // Store the original parent in case the drag is to another drop-target
+    // This can be complex if not dropped successfully; let's manage parentage in drop handlers
+  }
+
+  // MODIFIED: Original document 'dragleave' listener is kept, but dragend cleanup is more robust.
+  document.addEventListener('dragleave', function(event) {
+    // This simple version only removes drag-over if event.target is the droppable itself.
+    // More complex logic (checking event.relatedTarget) is needed for perfect behavior
+    // when dragging over children, but dragend cleanup will handle most cases.
+    if (event.target.classList && (event.target.classList.contains("drop-target") || event.target.classList.contains("right-column-content"))) {
+        // A basic check: if relatedTarget is outside this element, remove drag-over
+        if (!event.target.contains(event.relatedTarget) && event.target !== event.relatedTarget) {
+             event.target.classList.remove("drag-over");
+        } else if (event.relatedTarget === null) { // Mouse left the window
+            event.target.classList.remove("drag-over");
+        }
+    }
+  }, false);
+  
+  // MODIFIED: dragend to clean up all drag-over classes
+  document.addEventListener('dragend', function(event) {
+    if (event.target.classList && event.target.classList.contains('draggable')) {
+      event.target.classList.remove('dragging');
+    }
+    // Global cleanup for any remaining drag-over states
+    document.querySelectorAll('.drop-target.drag-over, .right-column-content.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+  });
+
+  // MODIFIED: drop function for question slots
+  function drop(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    let dropTarget = ev.target;
+
+    while (dropTarget && !dropTarget.classList.contains("drop-target")) {
+        dropTarget = dropTarget.parentElement;
+    }
+    
+    if (!dropTarget || !draggedEl) return;
+
+    dropTarget.classList.remove("drag-over");
+    // draggedEl.classList.remove("dragging"); // Done by dragend
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; // Capture before moving
+
+    const currentAnswerInTarget = dropTarget.querySelector(".draggable");
+    if (currentAnswerInTarget && currentAnswerInTarget !== draggedEl) {
+      rightColumnContent.appendChild(currentAnswerInTarget);
+      showCheckbox(currentAnswerInTarget);
+      // The targetDropzone (parent of currentAnswerInTarget) will be updated by updateDropTargetState(dropTarget)
+    }
+    
+    dropTarget.innerHTML = ""; // Clear previous content
+    dropTarget.appendChild(draggedEl);
+    hideCheckbox(draggedEl);
+    updateDropTargetState(dropTarget);
+
+    // If the dragged element came from a *different* drop-target, update that one too.
+    if (originalParentOfDraggedEl &&
+        originalParentOfDraggedEl.classList.contains("drop-target") &&
+        originalParentOfDraggedEl !== dropTarget) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+  // NEW: Function to handle drops onto the answers container
+  function dropOnAnswersContainer(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    const answersContainer = ev.currentTarget; // This is right-column-content
+
+    if (!draggedEl || !answersContainer) return;
+
+    answersContainer.classList.remove("drag-over");
+    // draggedEl.classList.remove("dragging"); // Done by dragend
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; // Capture before moving
+
+    answersContainer.appendChild(draggedEl);
+    showCheckbox(draggedEl);
+
+    // If the dragged element came from a question's drop-target, update that drop-target's state
+    if (originalParentOfDraggedEl && originalParentOfDraggedEl.classList.contains("drop-target")) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+
+  function hideCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "none";
+  }
+
+  function showCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "inline-block";
+  }
+
+  function selectAnswer(el, event) {
+    event.stopPropagation(); 
+    if (selectedAnswer === el) { 
+      el.classList.remove("selected");
+      selectedAnswer = null;
+    } else {
+      if (selectedAnswer) selectedAnswer.classList.remove("selected");
+      selectedAnswer = el;
+      el.classList.add("selected");
+    }
+  }
+
+  // MODIFIED: clickDrop function
+  function clickDrop(targetDropzone) {
+    if (selectedAnswer) {
+      const originalParentOfSelectedAnswer = selectedAnswer.parentElement; // Capture before moving
+
+      const currentAnswerInDropzone = targetDropzone.querySelector(".draggable");
+      if (currentAnswerInDropzone && currentAnswerInDropzone !== selectedAnswer) {
+        rightColumnContent.appendChild(currentAnswerInDropzone);
+        showCheckbox(currentAnswerInDropzone);
+      }
+      
+      targetDropzone.innerHTML = ""; 
+      targetDropzone.appendChild(selectedAnswer);
+      hideCheckbox(selectedAnswer);
+      updateDropTargetState(targetDropzone);
+
+      // If selectedAnswer came from a *different* drop-target, update that one.
+      if (originalParentOfSelectedAnswer &&
+          originalParentOfSelectedAnswer.classList.contains("drop-target") &&
+          originalParentOfSelectedAnswer !== targetDropzone) {
+          updateDropTargetState(originalParentOfSelectedAnswer);
+      }
+      // If it came from rightColumnContent, originalParentOfSelectedAnswer is rightColumnContent, no UI update needed for it.
+
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function clearSelected() {
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function updateDropTargetState(dropTarget) {
+    if (!dropTarget || !dropTarget.classList.contains('drop-target')) return;
+    
+    if (dropTarget.querySelector(".draggable")) {
+      dropTarget.classList.remove("empty-drop-target");
+    } else {
+      dropTarget.classList.add("empty-drop-target");
+    }
+  }
+
+  function getDraggableText(draggableElement) {
+    const clone = draggableElement.cloneNode(true);
+    const checkbox = clone.querySelector('.wrong-flag');
+    if (checkbox) {
+        checkbox.remove();
+    }
+    return clone.textContent.trim();
+  }
+
+  function submitQuiz() {
+    let total = 0, correct = 0;
+    document.querySelectorAll('.question-box').forEach((box) => {
+      total++;
+      const correctAnswerText = box.getAttribute("data-correct").trim();
+      const dropTarget = box.querySelector(".drop-target");
+      const droppedDraggable = dropTarget.querySelector(".draggable");
+      
+      dropTarget.classList.remove("correct", "incorrect"); 
+
+      if (droppedDraggable) { 
+        const selectedText = getDraggableText(droppedDraggable); 
+        if (correctAnswerText === "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        } else {
+          if (selectedText === correctAnswerText) {
+            dropTarget.classList.add("correct");
+            correct++;
+          } else {
+            dropTarget.classList.add("incorrect");
+          }
+        }
+      } else { 
+        if (correctAnswerText !== "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        }
+      }
+      updateDropTargetState(dropTarget); 
+    });
+
+    let wrongMarkedCorrect = 0, wrongMarkedTotal = 0;
+    rightColumnContent.querySelectorAll('.draggable').forEach((answerEl) => {
+      const text = getDraggableText(answerEl); 
+      const checkbox = answerEl.querySelector('.wrong-flag');
+      
+      const isACorrectAnswerOptionForAnyQuestion = Array.from(document.querySelectorAll('.question-box'))
+        .some(box => {
+            const qCorrectText = box.getAttribute('data-correct').trim();
+            return qCorrectText !== "__NO_CORRECT_ANSWER__" && qCorrectText === text;
+        });
+      
+      if (!isACorrectAnswerOptionForAnyQuestion) { 
+        wrongMarkedTotal++; 
+        if (checkbox.checked) {
+          wrongMarkedCorrect++; 
+        }
+      }
+    });
+
+    const questionsWithNoAnswer = Array.from(document.querySelectorAll('.question-box'))
+                                      .filter(box => box.getAttribute('data-correct').trim() === "__NO_CORRECT_ANSWER__").length;
+    const scorableTotal = total - questionsWithNoAnswer;
+
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML =
+      `<span class="correct-count">✅ ${correct}</span> von <span class="total-count">${scorableTotal}</span> bewertbaren Fragen richtig. | ` + 
+      `<span class="marked-wrong-count">🚫 Falsch-Antworten korrekt markiert: ${wrongMarkedCorrect}</span> von ${wrongMarkedTotal}.`;
+  }
+
+  function resetQuiz() {
+    document.querySelectorAll('.drop-target').forEach(dt => {
+        const draggable = dt.querySelector('.draggable');
+        if (draggable) {
+            // Append to ensure it's at the end if others were returned individually
+            rightColumnContent.appendChild(draggable); 
+            showCheckbox(draggable); 
+        }
+        dt.innerHTML = ''; 
+        dt.classList.remove('correct', 'incorrect'); 
+        updateDropTargetState(dt); 
+    });
+
+    // Clear the right column first to avoid duplicates if an item was already returned
+    rightColumnContent.innerHTML = ''; 
+    originalAnswerOrder.forEach(draggable => {
+        rightColumnContent.appendChild(draggable); 
+        draggable.classList.remove('selected', 'dragging'); 
+        showCheckbox(draggable); 
+        const checkbox = draggable.querySelector('.wrong-flag');
+        if (checkbox) checkbox.checked = false; 
+    });
+    
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove('selected');
+      selectedAnswer = null;
+    }
+
+    document.getElementById("result").innerHTML = ""; 
+  }
+
+  document.getElementById('submitQuizButton').addEventListener('click', submitQuiz);
+  document.getElementById('resetQuizButton').addEventListener('click', resetQuiz);
+
+  document.querySelectorAll('.drop-target').forEach(updateDropTargetState);
+</script>
+<script>
+let pingTimeout;
+let logoutTimer;
+const INACTIVITY_LIMIT = 6 * 60 * 1000; // 6 minutes
+
+function sendPing() {
+    fetch("/ping").catch(() => {});
+}
+
+// Reset timers when user interacts
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+
+    // Ping immediately and schedule another one in 1 min if idle
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Auto logout after 6 min inactivity
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/"); // redirect to homepage/login
+    }, INACTIVITY_LIMIT);
+}
+
+// Events that count as activity
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+// Start timers when page loads
+resetTimers();
+</script>
+</body></html>

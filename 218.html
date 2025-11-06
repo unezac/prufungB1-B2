@@ -1,0 +1,901 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Lesen Teil 3</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<!-- Font Awesome for Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+    :root {
+      --primary-color: #3498db; /* A slightly more vibrant blue */
+      --secondary-color: #2ecc71; /* Green for success */
+      --danger-color: #e74c3c; /* Red for error */
+      --light-bg: #ecf0f1;
+      --dark-text: #2c3e50;
+      --light-text: #ffffff;
+      --border-radius: 10px;
+      --box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      --box-shadow-hover: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark-text);
+      animation: fadeInPage 0.8s ease-out;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      padding: 20px 25px;
+      margin-bottom: 25px;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-size: 26px;
+      font-weight: 600;
+      box-shadow: var(--box-shadow);
+      letter-spacing: 0.5px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @media(min-width: 768px) {
+      .container {
+        flex-direction: row;
+      }
+    }
+
+    .columns-container {
+       display: flex;
+       gap: 20px;
+       align-items: stretch; /* Ensures both columns align vertically */
+    }
+
+    .left-column, .right-column {
+       flex: 1;
+       display: flex;
+       flex-direction: column;
+    }
+
+    .quiz-scroll-container, .right-column-content {
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: var(--box-shadow);
+      max-height: 60vh; /* Adjusted for better viewport fit */
+      overflow-y: auto;
+      /* Custom scrollbar styling */
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) var(--light-bg);
+    }
+
+    /* Style for .right-column-content when being dragged over */
+    .right-column-content.drag-over {
+        background-color: #eef8ff; /* Same as .drop-target.drag-over */
+        border: 2px dashed var(--primary-color); /* Add a border to indicate it's a drop zone */
+    }
+
+    .right-column-content {
+        min-height: 300px; /* or whatever minimum you want */
+        border: 1px dashed #ccc; /* optional: visual aid */
+        padding: 10px;
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+    }
+
+
+
+    .quiz-scroll-container::-webkit-scrollbar,
+    .right-column-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    .quiz-scroll-container::-webkit-scrollbar-track,
+    .right-column-content::-webkit-scrollbar-track {
+      background: var(--light-bg);
+      border-radius: var(--border-radius);
+    }
+    .quiz-scroll-container::-webkit-scrollbar-thumb,
+    .right-column-content::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: var(--border-radius);
+      border: 2px solid var(--light-bg);
+    }
+
+
+    .question-box {
+      border: 1px solid #bdc3c7;
+      border-left: 5px solid var(--primary-color);
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #fdfdfd; /* Slightly off-white */
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .question-box:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .question-text {
+      font-size: 0.9em;
+      color: #7f8c8d;
+      margin-top: 10px;
+    }
+
+    .drop-target {
+      background-color: #f9f9f9;
+      padding: 12px;
+      margin-bottom: 10px; /* Space between drop target and question text */
+      border: 2px dashed #cccccc;
+      min-height: 45px;
+      border-radius: 8px;
+      text-align: center;
+      transition: background-color 0.3s, border-color 0.3s;
+      display: flex; /* To center placeholder and dropped item */
+      align-items: center;
+      justify-content: center;
+      position: relative; /* For feedback icons */
+    }
+    .drop-target.empty-drop-target::before {
+      content: "Hier Antwort ablegen";
+      color: #aaa;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+    .drop-target:not(.empty-drop-target)::before {
+      content: ""; /* Clear placeholder when not empty */
+    }
+
+    .drop-target:hover, .drop-target.drag-over {
+      background-color: #eef8ff;
+      border-color: var(--primary-color);
+    }
+
+    .draggable {
+      background-color: #e0e0e0;
+      color: var(--dark-text);
+      margin: 10px 0;
+      padding: 12px 15px;
+      border-radius: 8px;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+      font-size: 0.95em;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .draggable:hover {
+      background-color: #d0d0d0;
+      transform: translateX(3px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .draggable.selected {
+      outline: 2px solid var(--primary-color);
+      box-shadow: 0 0 0 3px var(--primary-color_alpha, rgba(52, 152, 219, 0.3));
+      background-color: #cce7ff;
+    }
+    .draggable.dragging {
+      opacity: 0.6;
+      transform: scale(0.95);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      cursor: grabbing;
+    }
+
+    /* Feedback styling for drop targets */
+    .drop-target.correct {
+      background-color: #e8f5e9; /* Light green */
+      border: 2px solid var(--secondary-color) !important;
+    }
+    .drop-target.correct::after {
+      content: "\f00c"; /* Font Awesome check icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--secondary-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+
+    .drop-target.incorrect {
+      background-color: #ffebee; /* Light red */
+      border: 2px solid var(--danger-color) !important;
+    }
+    .drop-target.incorrect::after {
+      content: "\f00d"; /* Font Awesome times icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--danger-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+    /* Ensure dropped draggable text is visible over feedback */
+    .drop-target .draggable {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      width: calc(100% - 30px); /* Adjust width to make space for icon */
+      padding-right: 35px; /* Space for the potential icon */
+      box-sizing: border-box;
+    }
+    .drop-target.correct .draggable { background-color: var(--secondary-color); }
+    .drop-target.incorrect .draggable { background-color: var(--danger-color); }
+
+
+    .wrong-flag {
+      margin-right: 10px;
+      accent-color: var(--danger-color);
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    .button-container {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .quiz-button {
+      padding: 12px 25px;
+      border: none;
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--box-shadow);
+    }
+    .quiz-button:hover {
+      background-color: #2980b9; /* Darker shade of primary */
+      transform: translateY(-2px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .quiz-button:active {
+      transform: translateY(0px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .quiz-button.secondary {
+      background-color: #7f8c8d; /* A neutral secondary color */
+    }
+    .quiz-button.secondary:hover {
+      background-color: #6c7a89;
+    }
+
+    #result {
+      text-align: center;
+      margin-top: 25px;
+      padding: 15px;
+      font-size: 1.1em;
+      font-weight: 500;
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    #result .correct-count { color: var(--secondary-color); }
+    #result .total-count { color: var(--primary-color); }
+    #result .marked-wrong-count { color: var(--danger-color); }
+
+  </style>
+</head>
+<body>
+<div class="header">Lesen Teil 3:</div>
+<div class="container">
+<div class="left-column">
+<div class="quiz-scroll-container">
+<!-- Questions A -->
+<div class="question-box" data-correct="Sie möchten am Donnerstag Abend mit Ihrer Bekannten eine Musikveranstaltung besuchen." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;">
+<h2>Das Musikereignis in der Schweiz</h2>
+<h1>Melissa</h1>
+<h2>City Halle Winterthur</h2>
+<p>Mi bis Sa 19.30 Uhr und So 17.00 Uhr.<br/>
+           Bitte Ticket-Vorverkauf nutzen:<br/>
+            Fastbox 0848 800 800</p>
+</div>
+</div>
+<!-- Questions B -->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__" style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h1>Crash-Kurse für Manager.</h1>
+<h3>Sprachkurse für Urlaub und Beruf.</h3>
+         High-School-Programme.
+        <h5>Dr. Steinfels Sprachreisen<br/>
+            Tel. 060 50 / 1000</h5>
+</div>
+</div>
+<!-- Questions C -->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__" style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h1>Kammermusiksoiree</h1>
+<h3>Rita Karin Meier: Klarinette und Bassetthorn<br/>
+            Hansjürg Leuthold: Klarinette<br/>
+            Ludvik Bloxham: Fagott<br/>
+            Peter Solomow: Klavier</h3>
+<p>Beethoven: Duo Nr. 3<br/>
+           Krommer: Trio Pathetique<br/>
+           Kovács: Trio op.43<br/>
+           Mendelssohn: Konzertstück Nr. 2 op.114<br/>
+           Schumann: Fantasiestücke op. 73<br/>
+           Ponchielli: Divertimento Il Convegno</p>
+<h3>Sonntag, 10. Januar 17.00 Uhr<br/>
+            Alte Mühle Otelfingen<br/>
+            Mittwoch, 13. Januar 19.30 Uhr<br/>
+            Ref. Kirchgemeindehaus Zürich-Enge</h3>
+<h5>Bederstrasse 25 – 8002 Zürich<br/>
+            Eintritt frei – Kollekte</h5>
+</div>
+</div>
+<!-- Questions D -->
+<div class="question-box" data-correct="Sie sind in der Schweiz und möchten sich ein paar Tage beim Baden erholen." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h1>Das Schweizer Spektakel</h1>
+<h2>THERME VALS</h2>
+<p>Hoch vom Dachberg (3000m)<br/>
+           einfach gleiten über tief verschneite Hänge<br/>
+           und unten in der Felsentherme sich dem<br/>
+           Urgefühl des Badens hingeben. In diesem<br/>
+           Extremen findet der Mensch seine Natur.</p>
+<h4>Auskunft: Hotel Therme, CH-7132 Vals<br/>
+            Telefon 081 / 926 80 80</h4>
+</div>
+</div>
+<!-- Questions E -->
+<div class="question-box" data-correct="Sie reisen nicht gerne allein und suchen deshalb Reisepartner." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h1>Singles reisen gemeinsam</h1>
+<h3>Abteilung Sport</h3>
+<p>Wer hat Lust auf Frankreich?<br/>
+           Wir sind drei reiselustige Schweizer für<br/>
+           eine vierzehntägige Tour durch Südfrankreich noch<br/>
+           Leute, die bei uns mitmachen wollen.</p>
+<h4>Zuschriften unter:<br/>
+            Chiffre : 0123</h4>
+</div>
+</div>
+<!-- Questions F -->
+<div class="question-box" data-correct="Sie möchten Freunde im Ausland besuchen und suchen ein Reisebüro." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h2>Preiswerte Flüge weltweit</h2>
+<p>London ab Euro 149.–
+           Johannesburg ab Euro 599.–
+           New York ab Euro 299.–
+           Sydney ab Euro 799.–</p>
+<h3>Flugreise inkl. Mw5t</h3>
+<p>Tel. 0711 / 3891-0 • Fax 25 130<br/>
+           Take-Off Reisen GmbH<br/>
+           Heusteigstr. 15 • 74081 Heilbronn</p>
+<h3>online im internet: www.take-off-reisen.com</h3>
+</div>
+</div>
+<!-- Questions G -->
+<div class="question-box" data-correct="Sie sind sportlich und möchten im Sommer in den Bergen wandern gehen." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h1>Ihre Wanderetage in bester Alpenluft!</h1>
+<h3>Wunderbare Fernsicht: Blick auf Meran!</h3>
+<p>Urverbaute, zentrale Panoramalage – kein Durchgangsverkehr!<br/>
+            Nur 5 bequeme Gehminuten ins Dorfzentrum, Komfortzimmer mit Balkon,<br/>
+            TV, Tel., Safe, Hallen- und Freibad, Liegewiese, Sauna, Solarium, Lift.<br/>
+            Reichhaltiges Frühstücksbuffet – Menüwahl. Diät- und Schonkost möglich.<br/> 
+            Kindermäßigung!</p>
+<h4>Im August 7 Tag HP ab Euro 299,–!<br/>
+            Richtpreis bis Ende des J. HP, Pers./Tag Euro 49,–<br/>
+            Richtpreis bis 30.11. HP, Pers./Tag Euro 39,–</h4>
+<h5>I-39017 SCHENNA b. Meran, Telefon<br/>
+            0039 / 0473 / 94 73 51<br/>
+            Fax 0039 / 0473 / 94 57 34<br/>
+            Einfach anrufen und buchen! Wir freuen uns.<br/>
+            Ihre Familie Walder</h5>
+</div>
+</div>
+<!-- Questions H -->
+<div class="question-box" data-correct="Sie hören gerne klassische Musik, am liebsten Barocklieder. Sie möchten in ein Konzert gehen." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 50%;"> <!-- Adjust width as needed -->
+<h1>Freunde des Liedes</h1>
+<h2>DEUTSCHE UND ENGLISCHE BAROCKLIEDER</h2>
+<h3>Georg Friedrich Händel</h3>
+<p>Kantate: Vedendo Amor<br/>
+             Andreas Schulz: Countertenor<br/>
+             Markus Märki: Cembalo<br/>
+             Karl Ernst Schröder: Laute</p>
+<p>Montag, 18. Januar, 19.30 Uhr<br/>
+             Konservatorium Zürich, gr.-Saal</p>
+<h4>Vorverkauf:</h4>
+<p>Jecklin (Rämistr. 16, Tel. 253 76 70) und<br/>
+             Musik Hug (Limmatquai, Tel. 269 41 00)<br/>
+             oder an der Abendkasse Einzelbillette zu Fr.32-<br/>
+             mit Legi + AIIV-Ausweis Fr. 20.–</p>
+</div>
+</div>
+<!-- Questions I -->
+<div class="question-box" data-correct="Ihr Sohn möchte gerne in den Schulfeien seinen Fremdsprachenkenntnisse verbessern. Er möchte auch Sport treiben." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;"> <!-- Adjust width as needed -->
+<h1>Das Sprachreisen-Reisebüro in<br/>
+            Deutschland</h1>
+<p>Angebote von mehr als 35 Veranstaltern mit Kursorten<br/> 
+          in der ganzen Welt mit Sportmöglichkeiten. Umfassende,<br/>
+          objektive und kostenfreie Beratung zum Thema Schüler-<br/>
+          Sprachferien, Summer-School-Jahr.<br/>
+          Fordern Sie auch unseren Katalog für Erwachsene an.<br/>
+          Getestet und empfohlen von Ihrem Spezialisten.</p>
+<h3>Euro-Schüler-Sprachreisen</h3>
+<h5>Grillparzerstr. 46<br/>
+            81675 München<br/>
+            Tel: 089 / 45 55 56 30<br/>
+            Fax: 089 / 45 55 56 33<br/>
+            e-mail: info@sprachreisen.de</h5>
+</div>
+</div>
+<!-- Questions J -->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__" style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;">
+<h2>Singen im chor</h2>
+<p>Hast du Lust in unserem Kammerchor zu singen?<br/>
+            Bei uns bist du eine wichtige und fragende Stimmel!<br/>
+            Unser Dirigent ist David Haladijan.Er ist Komposist und wir führen<br/>
+            z.T. Werke auf die er eigens für uns geschrieben hat.</p>
+<p>Unser Repertoire ist zeitgenössische, anspruchsvolle Chormusik.<br/>
+            Wir proben jeweils Mittwochs von 16.00 bis zirka 20.30 Uhr <br/>
+            im Altstetten Z.H. Gesucht werden Stimmen alter Register.<br/>
+            Herzlich Wilkommen!</p>
+<h5>Mehr Infos unter www.cantico.ch<br/>
+              oder Tel. 079 / 320 18 29</h5>
+</div>
+</div>
+<!-- Questions K -->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__" style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;">
+<h2>AUF IN´S ALLGAU...</h2>
+<p>ein königlichen Haus zum bürgerlichen Preis!</p>
+<h4>Winter-Pauschale<br/>
+              10.Januar - 12.Februar<br/>
+              Euro 199,-</h4>
+<h3>5 ÜBERN INKL. HP P.P.IM DZ</h3>
+<p>Sauna, Schöneheitsoase, Medizin, Bäder und<br/>
+            Massageabteilung, Sauerstoffkur, Naturheiverfahren,<br/>
+            Arzt im Haus.</p>
+<h3>Hotel König Lubwig</h3>
+<h5>0-87564 Schwangau<br/>
+            Telefon: 08386 / 8090 • Fax 81779</h5>
+</div>
+</div>
+<!-- Questions L -->
+<div class="question-box" data-correct="Sie leben in Zürich und möchten dort möglichst schnell Englisch lernen." style="text-align: center;">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text" style="margin: 0 auto; max-width: 80%;">
+<h5>Englisch, Deutsch, Französisch, Russisch, Portugiesisch, Spanisch, Italienisch...</h5>
+<h2>MIT SUPERLEARNING ALS BERUFSBEGLEITENDE<br/>
+              LERNMETHODE</h2>
+<p>Intensiv - 3 mal höheres Lerntempo<br/>
+            aktiver Unterricht mit nur 1-5 Lernenden<br/>
+            Stundenplan und Lerninhalt nach bedarf<br/>
+            Stressfreie Lernsituation.</p>
+<h3>Die effizienteste und angenehmste Art sehr schnell<br/>
+              Sprachen zu lernen</h3>
+<h3>J.P. &amp; E. Schirmer</h3>
+<p>Flüelastraße 47,8047 Zürich<br/>
+            Telefon 01/4013901<br/>
+            Telefax 01/4013902<br/>
+            Zürich, Basel, Bern, Zug<br/>
+            http://dialogica.ch<br/>
+            e-mail: dialogica.zuerich@bluewin.ch</p>
+</div>
+</div>
+</div>
+</div>
+<div class="right-column">
+<!-- MODIFIED: Added ondragover and ondrop to make this a droppable area -->
+<div class="right-column-content" onclick="clearSelected()" ondragover="allowDrop(event)" ondrop="dropOnAnswersContainer(event)">
+<!-- Answers -->
+<div class="draggable" draggable="true" id="a1" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie sind in der Schweiz und möchten sich ein paar Tage beim Baden erholen. 
+      </div>
+<div class="draggable" draggable="true" id="a2" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie hören gerne klassische Musik, am liebsten Barocklieder. Sie möchten in ein Konzert gehen.
+      </div>
+<div class="draggable" draggable="true" id="a3" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihr Sohn möchte gerne in den Schulfeien seinen Fremdsprachenkenntnisse verbessern. Er möchte auch Sport treiben.
+      </div>
+<div class="draggable" draggable="true" id="a4" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie reisen nicht gerne allein und suchen deshalb Reisepartner.
+      </div>
+<div class="draggable" draggable="true" id="a5" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie möchten am Donnerstag Abend mit Ihrer Bekannten eine Musikveranstaltung besuchen.
+      </div>
+<div class="draggable" draggable="true" id="a6" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihre Familie möchte den nächsten Urlaub am Meer verbringen.
+      </div>
+<div class="draggable" draggable="true" id="a7" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie leben in Zürich und möchten dort möglichst schnell Englisch lernen.
+      </div>
+<div class="draggable" draggable="true" id="a8" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie bekommen Besuch von Ihrer Freundin. Sie möchte gerne tanzen gehen.
+      </div>
+<div class="draggable" draggable="true" id="a9" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie möchten Freunde im Ausland besuchen und suchen ein Reisebüro.
+      </div>
+<div class="draggable" draggable="true" id="a10" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie sind sportlich und möchten im Sommer in den Bergen wandern gehen.
+      </div>
+</div>
+</div>
+</div>
+<div class="button-container">
+<button class="quiz-button" id="submitQuizButton">
+<i class="fas fa-paper-plane"></i> Abschicken
+    </button>
+<button class="quiz-button secondary" id="resetQuizButton">
+<i class="fas fa-redo"></i> Zurücksetzen
+    </button>
+<!-- Changed to <a> tag for navigation, href to a generic "index.html" or "#" -->
+<a class="quiz-button secondary" href="/index1" id="homeButton" role="button">
+<i class="fas fa-home"></i> Startseite
+    </a>
+</div>
+<div id="result"></div>
+<script>
+  let selectedAnswer = null;
+  const rightColumnContent = document.querySelector(".right-column-content");
+  const originalAnswerOrder = Array.from(rightColumnContent.querySelectorAll('.draggable')); // Store initial order for reset
+
+  // MODIFIED: allowDrop to correctly identify parent droppable container
+  function allowDrop(ev) {
+    ev.preventDefault();
+    let droppableContainer = ev.target;
+    // Traverse up to find the actual droppable container (.drop-target or .right-column-content)
+    while (droppableContainer && droppableContainer !== document.body &&
+           !droppableContainer.classList.contains("drop-target") &&
+           !droppableContainer.classList.contains("right-column-content")) {
+        droppableContainer = droppableContainer.parentElement;
+    }
+
+    if (droppableContainer && (droppableContainer.classList.contains("drop-target") || droppableContainer.classList.contains("right-column-content"))) {
+        droppableContainer.classList.add("drag-over");
+    }
+  }
+
+  function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+    ev.target.classList.add("dragging");
+    // Store the original parent in case the drag is to another drop-target
+    // This can be complex if not dropped successfully; let's manage parentage in drop handlers
+  }
+
+  // MODIFIED: Original document 'dragleave' listener is kept, but dragend cleanup is more robust.
+  document.addEventListener('dragleave', function(event) {
+    // This simple version only removes drag-over if event.target is the droppable itself.
+    // More complex logic (checking event.relatedTarget) is needed for perfect behavior
+    // when dragging over children, but dragend cleanup will handle most cases.
+    if (event.target.classList && (event.target.classList.contains("drop-target") || event.target.classList.contains("right-column-content"))) {
+        // A basic check: if relatedTarget is outside this element, remove drag-over
+        if (!event.target.contains(event.relatedTarget) && event.target !== event.relatedTarget) {
+             event.target.classList.remove("drag-over");
+        } else if (event.relatedTarget === null) { // Mouse left the window
+            event.target.classList.remove("drag-over");
+        }
+    }
+  }, false);
+  
+  // MODIFIED: dragend to clean up all drag-over classes
+  document.addEventListener('dragend', function(event) {
+    if (event.target.classList && event.target.classList.contains('draggable')) {
+      event.target.classList.remove('dragging');
+    }
+    // Global cleanup for any remaining drag-over states
+    document.querySelectorAll('.drop-target.drag-over, .right-column-content.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+  });
+
+  // MODIFIED: drop function for question slots
+  function drop(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    let dropTarget = ev.target;
+
+    while (dropTarget && !dropTarget.classList.contains("drop-target")) {
+        dropTarget = dropTarget.parentElement;
+    }
+    
+    if (!dropTarget || !draggedEl) return;
+
+    dropTarget.classList.remove("drag-over");
+    // draggedEl.classList.remove("dragging"); // Done by dragend
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; // Capture before moving
+
+    const currentAnswerInTarget = dropTarget.querySelector(".draggable");
+    if (currentAnswerInTarget && currentAnswerInTarget !== draggedEl) {
+      rightColumnContent.appendChild(currentAnswerInTarget);
+      showCheckbox(currentAnswerInTarget);
+      // The targetDropzone (parent of currentAnswerInTarget) will be updated by updateDropTargetState(dropTarget)
+    }
+    
+    dropTarget.innerHTML = ""; // Clear previous content
+    dropTarget.appendChild(draggedEl);
+    hideCheckbox(draggedEl);
+    updateDropTargetState(dropTarget);
+
+    // If the dragged element came from a *different* drop-target, update that one too.
+    if (originalParentOfDraggedEl &&
+        originalParentOfDraggedEl.classList.contains("drop-target") &&
+        originalParentOfDraggedEl !== dropTarget) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+  // NEW: Function to handle drops onto the answers container
+  function dropOnAnswersContainer(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    const answersContainer = ev.currentTarget; // This is right-column-content
+
+    if (!draggedEl || !answersContainer) return;
+
+    answersContainer.classList.remove("drag-over");
+    // draggedEl.classList.remove("dragging"); // Done by dragend
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; // Capture before moving
+
+    answersContainer.appendChild(draggedEl);
+    showCheckbox(draggedEl);
+
+    // If the dragged element came from a question's drop-target, update that drop-target's state
+    if (originalParentOfDraggedEl && originalParentOfDraggedEl.classList.contains("drop-target")) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+
+  function hideCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "none";
+  }
+
+  function showCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "inline-block";
+  }
+
+  function selectAnswer(el, event) {
+    event.stopPropagation(); 
+    if (selectedAnswer === el) { 
+      el.classList.remove("selected");
+      selectedAnswer = null;
+    } else {
+      if (selectedAnswer) selectedAnswer.classList.remove("selected");
+      selectedAnswer = el;
+      el.classList.add("selected");
+    }
+  }
+
+  // MODIFIED: clickDrop function
+  function clickDrop(targetDropzone) {
+    if (selectedAnswer) {
+      const originalParentOfSelectedAnswer = selectedAnswer.parentElement; // Capture before moving
+
+      const currentAnswerInDropzone = targetDropzone.querySelector(".draggable");
+      if (currentAnswerInDropzone && currentAnswerInDropzone !== selectedAnswer) {
+        rightColumnContent.appendChild(currentAnswerInDropzone);
+        showCheckbox(currentAnswerInDropzone);
+      }
+      
+      targetDropzone.innerHTML = ""; 
+      targetDropzone.appendChild(selectedAnswer);
+      hideCheckbox(selectedAnswer);
+      updateDropTargetState(targetDropzone);
+
+      // If selectedAnswer came from a *different* drop-target, update that one.
+      if (originalParentOfSelectedAnswer &&
+          originalParentOfSelectedAnswer.classList.contains("drop-target") &&
+          originalParentOfSelectedAnswer !== targetDropzone) {
+          updateDropTargetState(originalParentOfSelectedAnswer);
+      }
+      // If it came from rightColumnContent, originalParentOfSelectedAnswer is rightColumnContent, no UI update needed for it.
+
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function clearSelected() {
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function updateDropTargetState(dropTarget) {
+    if (!dropTarget || !dropTarget.classList.contains('drop-target')) return;
+    
+    if (dropTarget.querySelector(".draggable")) {
+      dropTarget.classList.remove("empty-drop-target");
+    } else {
+      dropTarget.classList.add("empty-drop-target");
+    }
+  }
+
+  function getDraggableText(draggableElement) {
+    const clone = draggableElement.cloneNode(true);
+    const checkbox = clone.querySelector('.wrong-flag');
+    if (checkbox) {
+        checkbox.remove();
+    }
+    return clone.textContent.trim();
+  }
+
+  function submitQuiz() {
+    let total = 0, correct = 0;
+    document.querySelectorAll('.question-box').forEach((box) => {
+      total++;
+      const correctAnswerText = box.getAttribute("data-correct").trim();
+      const dropTarget = box.querySelector(".drop-target");
+      const droppedDraggable = dropTarget.querySelector(".draggable");
+      
+      dropTarget.classList.remove("correct", "incorrect"); 
+
+      if (droppedDraggable) { 
+        const selectedText = getDraggableText(droppedDraggable); 
+        if (correctAnswerText === "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        } else {
+          if (selectedText === correctAnswerText) {
+            dropTarget.classList.add("correct");
+            correct++;
+          } else {
+            dropTarget.classList.add("incorrect");
+          }
+        }
+      } else { 
+        if (correctAnswerText !== "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        }
+      }
+      updateDropTargetState(dropTarget); 
+    });
+
+    let wrongMarkedCorrect = 0, wrongMarkedTotal = 0;
+    rightColumnContent.querySelectorAll('.draggable').forEach((answerEl) => {
+      const text = getDraggableText(answerEl); 
+      const checkbox = answerEl.querySelector('.wrong-flag');
+      
+      const isACorrectAnswerOptionForAnyQuestion = Array.from(document.querySelectorAll('.question-box'))
+        .some(box => {
+            const qCorrectText = box.getAttribute('data-correct').trim();
+            return qCorrectText !== "__NO_CORRECT_ANSWER__" && qCorrectText === text;
+        });
+      
+      if (!isACorrectAnswerOptionForAnyQuestion) { 
+        wrongMarkedTotal++; 
+        if (checkbox.checked) {
+          wrongMarkedCorrect++; 
+        }
+      }
+    });
+
+    const questionsWithNoAnswer = Array.from(document.querySelectorAll('.question-box'))
+                                      .filter(box => box.getAttribute('data-correct').trim() === "__NO_CORRECT_ANSWER__").length;
+    const scorableTotal = total - questionsWithNoAnswer;
+
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML =
+      `<span class="correct-count">✅ ${correct}</span> von <span class="total-count">${scorableTotal}</span> bewertbaren Fragen richtig. | ` + 
+      `<span class="marked-wrong-count">🚫 Falsch-Antworten korrekt markiert: ${wrongMarkedCorrect}</span> von ${wrongMarkedTotal}.`;
+  }
+
+  function resetQuiz() {
+    document.querySelectorAll('.drop-target').forEach(dt => {
+        const draggable = dt.querySelector('.draggable');
+        if (draggable) {
+            // Append to ensure it's at the end if others were returned individually
+            rightColumnContent.appendChild(draggable); 
+            showCheckbox(draggable); 
+        }
+        dt.innerHTML = ''; 
+        dt.classList.remove('correct', 'incorrect'); 
+        updateDropTargetState(dt); 
+    });
+
+    // Clear the right column first to avoid duplicates if an item was already returned
+    rightColumnContent.innerHTML = ''; 
+    originalAnswerOrder.forEach(draggable => {
+        rightColumnContent.appendChild(draggable); 
+        draggable.classList.remove('selected', 'dragging'); 
+        showCheckbox(draggable); 
+        const checkbox = draggable.querySelector('.wrong-flag');
+        if (checkbox) checkbox.checked = false; 
+    });
+    
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove('selected');
+      selectedAnswer = null;
+    }
+
+    document.getElementById("result").innerHTML = ""; 
+  }
+
+  document.getElementById('submitQuizButton').addEventListener('click', submitQuiz);
+  document.getElementById('resetQuizButton').addEventListener('click', resetQuiz);
+
+  document.querySelectorAll('.drop-target').forEach(updateDropTargetState);
+</script>
+<script>
+let pingTimeout;
+let logoutTimer;
+const INACTIVITY_LIMIT = 6 * 60 * 1000; // 6 minutes
+
+function sendPing() {
+    fetch("/ping").catch(() => {});
+}
+
+// Reset timers when user interacts
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+
+    // Ping immediately and schedule another one in 1 min if idle
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Auto logout after 6 min inactivity
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/"); // redirect to homepage/login
+    }, INACTIVITY_LIMIT);
+}
+
+// Events that count as activity
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+// Start timers when page loads
+resetTimers();
+</script>
+</body></html>

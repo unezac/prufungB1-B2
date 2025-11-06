@@ -1,0 +1,219 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Nicole teil: 2</title>
+<style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f1f1f1;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: row;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .text-section {
+      flex: 1;
+      padding: 20px;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+    }
+
+    .quiz-section {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .question-card {
+      background: #e9f0f7;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+    }
+
+    .question-card h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .question-card label {
+      display: block;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .result {
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    .correct {
+  background-color: #d4edda;
+  border: 1px solid #28a745;
+}
+
+.incorrect {
+  background-color: #f8d7da;
+  border: 1px solid #dc3545;
+}
+
+  </style>
+</head>
+<body>
+<div class="container">
+<!-- Left: Text -->
+<div class="text-section">
+<h1>Computerkurse sind schon für Kinder spannend</h1>
+<h3>Schreiben, Rechnen, Programme installieren</h3>
+<p>Schaden oder nützen Computer unseren Kindern? Fragen sich viele Eltern. Ein Computerkurs Veranstalter ist sich ganz sicher: wenn man den Kindern beibringt, den Computer richtig einzusetzen, ist sogar eine Lernhilfe. Seit fünf Jahren bietet Franz Krapfi Krapfen Bauer Computerkurse für Kinder zwischen sieben und vierzehn Jahren an und ist von seinen Schülern begeistert Am liebsten würden die Kinder drei Stunden ohne Pause durcharbeiten Und das obwohl in seinen Kursen nicht gespielt wird, sondern der Computer als Lernhilfe genutzt wird. Im ersten Kurs lernen die Kinder den Umgang mit dem Betriebssystem und erste Grundzüge der Textverarbeitung. Das Geheimnis von Krapfen Bauer Ich erkläre die Programme in der Sprache der Kinder und langweile sie nicht mit technischen Details. Sein Talent entdeckte er, als sich seine eigenen Kinder für den PC) zu interessieren begannen. Seine Tochter brachte immer mehr Mitschüler zum Sonntäglich PC-Training mit, bis eines Tages klar war: Das muss auf professionelle Beine gestellt werden.</p>
+<p>Das schwierigste war, einen passenden und vor allem kostengünstige Raum zu finden, denn Geld brachten die Kinderkurse am Anfang sehr wenig ein; Ein Bekannte, der Direktor eines Hotels ist, hatte schließlich die passende Lösung Die Schulungsräume im Hotel stehen den Kindern nun an den Wochenenden zur Verfügung Allgemein rät Krapfen Bauer, Kinder so früh wie möglich an den Computer zu lassen, allerdings nur unter Aufsicht und mit den richtigen Programmen. Beim Computer ist es wie beim Fernseher wenn man ihn als Kindermädchen einsetzt, ohne sich darum zu kümmern, was die Kinder damit machen, kann das negativ Folgen haben schon für drei – bis vierjährige Kinder gebe es sehr gute Spielprogramme, die mit Vorschulaufgaben vergleichbar wären. Gerade in der Zeit nach Weihnachten haben Krapfis Kindercomputerkurse Hochsaison. Viele Eltern haben einen Computer unter den Christbaum gestellt und wollen jetzt, dass ihre Kinder frühzeitig damit umgehen lernen. Wobei der Seminarleiter für manche Eltern sogar zu viel wissen weitergibt Einige Eltern haben sich schon beschwert, weil ihre Kinder jetzt Hausaufgaben am Computer lösen Die manchmal befürchtet Überordnung der Kinder hat Krapfen Bauer noch nicht erlebt. Ganz im Gegenteil, die kleinen sind oft gar nicht zu stoppen, wenn sie wieder etwas Neues erlernt haben. Viele Teilnehmer kommen dann auch gern zu den nächsten Kursen. Zeichenprogramm oder Spiele kommen in den Computerkursen höchstens als Belohnung am Rande vor.</p>
+<p>Das größte Hindernis auf dem Weg zum Computerexperten ist für die Kinder in manchen Fällen die negative Einstellung der Eltern.</p>
+<p>Die Erwachsene kennen oft nur die komplizierten Datenbankwendungen und Programme aus dem Büro und können sich gar nicht vorstellen, was man mit dem Computer noch alles machen kann bedauert Krapfen Bauer natürlich wirkt sich diese negative Grundeinstellung auch auf die Kinder aus, Überraschenderweise sind es dann oft die Großeltern, die für Computerkurse das Geld geben, damit ihre Enkelkinder mit dem PC richtig umgehen lernen.</p>
+<p>Information und Anmeldung<br/>
+        Tel: 0664/ 33 33 14<br/>
+        E –Mail: Krapfi@aon.at</p>
+</div>
+<!-- Right: Quiz -->
+<div class="quiz-section">
+<form id="quizForm">
+<div class="question-card">
+<h3>1. In der Computerkursen von Franz Krapfenbauer </h3>
+<label><input name="q1" type="radio" value="a"/> lernen die Kinder vor allem neue Computerspiele kennen.</label>
+<label><input name="q1" type="radio" value="b"/> lernen Kinder ab 14 Jahren das richtige Arbeiten mit dem Computer.</label>
+<label><input name="q1" type="radio" value="c"/> werden die Computerprogramme so einfach wie möglich erklärt.</label>
+</div>
+<div class="question-card">
+<h3>2. Am Anfang war es für Franz Krapfenbauer schwierig, </h3>
+<label><input name="q2" type="radio" value="a"/> einen geeigneten Raum für die Kurse zu finden.</label>
+<label><input name="q2" type="radio" value="b"/> genug Kinder für den Computerkurs zu finden.</label>
+<label><input name="q2" type="radio" value="c"/> seine Tochter für den Computer zu begeistern.</label>
+</div>
+<div class="question-card">
+<h3>3. Herr Krapfenbauer meint, </h3>
+<label><input name="q3" type="radio" value="a"/> dass auch kleine Kinder mit dem Computer arbeiten sollen.</label>
+<label><input name="q3" type="radio" value="b"/> dass Kinderunter vier Jahren zu jung für den Computer seien.</label>
+<label><input name="q3" type="radio" value="c"/> dass sich Kinder alleine mit dem Computer beschäftigen sollen.</label>
+</div>
+<div class="question-card">
+<h3>4. Viele Kinder </h3>
+<label><input name="q4" type="radio" value="a"/> machen im Kurs ihre Hausaufgaben am Computer.</label>
+<label><input name="q4" type="radio" value="b"/> machen nach dem ersten Kurs noch einen weiteren Kurs.</label>
+<label><input name="q4" type="radio" value="c"/> probieren im Kurs neue Computerspiele aus.</label>
+</div>
+<div class="question-card">
+<h3>5.  Franz Krapfenbauer erzählt,</h3>
+<label><input name="q5" type="radio" value="a"/> dass die Computerkurse oft von den Großeltern bezahlt werden.</label>
+<label><input name="q5" type="radio" value="b"/> dass einige Eltern selbst als Computerexperten arbeiten.</label>
+<label><input name="q5" type="radio" value="c"/> dass er auch Computerkurse in Büros plant.</label>
+</div>
+<button onclick="checkAnswers()" type="button">Antworten prüfen</button>
+<div class="result" id="result"></div>
+<div style="padding: 10px 20px; font-size: 16px; background-color: lab(42.45% 44.97 -83.12); color: white; border-radius: 8px; text-align: center;">
+<a href="/index1" style="text-decoration: none;">
+<div style="padding: 10px 20px; font-size: 16px; background-color: lab(42.45% 44.97 -83.12); color: white; border-radius: 8px; text-align: center;">
+                Zurück zur Startseite
+              </div>
+</a>
+</div>
+</form>
+</div>
+</div>
+<script>
+    function checkAnswers() {
+      const answers = {
+        q1: "c",
+        q2: "a",
+        q3: "a",
+        q4: "b",
+        q5: "a"
+      };
+  
+      let score = 0;
+      let total = Object.keys(answers).length;
+  
+      for (let q in answers) {
+        const correct = answers[q];
+        const selected = document.querySelector(`input[name="${q}"]:checked`);
+        const questionCard = document.querySelector(`[name="${q}"]`).closest(".question-card");
+  
+        // Remove previous styles
+        questionCard.classList.remove("correct", "incorrect");
+  
+        if (selected) {
+          if (selected.value === correct) {
+            score++;
+            questionCard.classList.add("correct");
+          } else {
+            questionCard.classList.add("incorrect");
+          }
+        } else {
+          questionCard.classList.add("incorrect");
+        }
+  
+        // Highlight the correct answer in green
+        const allOptions = document.querySelectorAll(`input[name="${q}"]`);
+        allOptions.forEach(opt => {
+          if (opt.value === correct) {
+            opt.parentElement.style.fontWeight = "bold";
+            opt.parentElement.style.color = "green";
+          }
+        });
+      }
+  
+      document.getElementById("result").innerText =
+        `Du hast ${score} von ${total} Fragen richtig beantwortet.`;
+        
+    }
+  </script>
+<script>
+let pingTimeout;
+let logoutTimer;
+const INACTIVITY_LIMIT = 6 * 60 * 1000; // 6 minutes
+
+function sendPing() {
+    fetch("/ping").catch(() => {});
+}
+
+// Reset timers when user interacts
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+
+    // Ping immediately and schedule another one in 1 min if idle
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Auto logout after 6 min inactivity
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/"); // redirect to homepage/login
+    }, INACTIVITY_LIMIT);
+}
+
+// Events that count as activity
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+// Start timers when page loads
+resetTimers();
+</script>
+</body></html>

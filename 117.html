@@ -1,0 +1,520 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Teil 3 Sprachbausteine</title>
+<!-- Font Awesome for Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+        :root {
+            --primary-color: #3498db; /* A slightly more vibrant blue */
+            --secondary-color: #2ecc71; /* Green for success */
+            --danger-color: #e74c3c; /* Red for error */
+            --light-bg: #ecf0f1;
+            --dark-text: #2c3e50;
+            --light-text: #ffffff;
+            --border-radius: 10px;
+            --box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            --box-shadow-hover: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-text);
+            animation: fadeInPage 0.8s ease-out;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        @keyframes fadeInPage {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            font-size: 26px;
+            font-weight: 600;
+            box-shadow: var(--box-shadow);
+            letter-spacing: 0.5px;
+        }
+
+        .game-layout { /* Acts as the .container */
+            display: flex;
+            flex-direction: column; /* Stack header, then content */
+            gap: 20px; /* Gap between header and columns, and between columns on wider screens */
+            max-width: 1200px;
+            margin: 0 auto; /* Centered */
+        }
+
+        .columns-container { /* New wrapper for the two columns */
+            display: flex;
+            flex-direction: column; /* Mobile first */
+            gap: 20px;
+            width: 100%;
+        }
+
+        @media(min-width: 768px) {
+            .game-layout {
+                gap: 25px;
+            }
+            .columns-container {
+                flex-direction: row; /* Side-by-side on larger screens */
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+        }
+
+        .quiz-text, .word-bank-container { /* Common styling for column wrappers */
+            background-color: var(--light-text);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            max-height: 70vh; 
+            overflow-y: auto;
+             /* Custom scrollbar styling */
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) var(--light-bg);
+        }
+        .quiz-text::-webkit-scrollbar,
+        .word-bank-container::-webkit-scrollbar {
+          width: 8px;
+        }
+        .quiz-text::-webkit-scrollbar-track,
+        .word-bank-container::-webkit-scrollbar-track {
+          background: var(--light-bg);
+          border-radius: var(--border-radius);
+        }
+        .quiz-text::-webkit-scrollbar-thumb,
+        .word-bank-container::-webkit-scrollbar-thumb {
+          background-color: var(--primary-color);
+          border-radius: var(--border-radius);
+          border: 2px solid var(--light-bg);
+        }
+
+
+        .quiz-text { /* Specific to left column */
+            flex: 3;
+            text-align: left;
+            line-height: 1.8; /* Increased line height for readability with blanks */
+        }
+         .quiz-text p {
+            margin-bottom: 1.5em;
+        }
+
+        .word-bank-container { /* Specific to right column wrapper */
+            flex: 1;
+            min-width: 250px; /* Ensure it has some width */
+        }
+        
+        .word-bank { /* Actual container for draggable words */
+            display: flex;
+            flex-direction: column; /* Stack words vertically */
+            gap: 10px;
+        }
+
+
+        .blank {
+            background-color: transparent; /* Initially transparent */
+            color: var(--primary-color); /* Color for the filled text */
+            padding: 3px 8px;
+            border-radius: 5px;
+            border-bottom: 2px dashed #ccc; /* Dashed underline for empty state */
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 70px; /* Adjust as needed for average word length */
+            text-align: center;
+            display: inline-block;
+            margin: 0 3px;
+            transition: background-color 0.3s, border-color 0.3s;
+            vertical-align: baseline;
+        }
+        .blank:hover, .blank.drag-over {
+            border-bottom-color: var(--primary-color);
+            background-color: #eef8ff;
+        }
+        /* Style for blank when it has content (JS will fill textContent) */
+        .blank[data-user-answer] {
+            border-bottom: 2px solid transparent; /* Remove underline when filled */
+            background-color: var(--primary-color); /* Default filled style before check */
+            color: var(--light-text);
+        }
+        /* JS will override background for correct/incorrect */
+
+
+        .draggable {
+            background-color: #e0e0e0;
+            color: var(--dark-text);
+            padding: 10px 15px; /* Adjusted padding */
+            border-radius: var(--border-radius);
+            cursor: grab;
+            display: flex; /* Use flex for alignment if needed */
+            align-items: center;
+            justify-content: center; /* Center text */
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+            font-size: 0.95em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            width: 100%; /* Stack vertically */
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .draggable:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px); /* Subtle lift */
+            box-shadow: var(--box-shadow-hover);
+        }
+        .draggable.selected-word-style { /* Class to be added by JS on click */
+            outline: 2px solid var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-color_alpha, rgba(52, 152, 219, 0.3));
+            background-color: #cce7ff;
+        }
+        .draggable.dragging-style { /* Class to be added by JS on dragstart */
+            opacity: 0.6;
+            transform: scale(0.95);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .button-container {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .quiz-button {
+            padding: 12px 25px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--box-shadow);
+            text-decoration: none; /* For <a> tags styled as buttons */
+        }
+        .quiz-button:hover {
+            background-color: #2980b9; /* Darker shade of primary */
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow-hover);
+        }
+        .quiz-button:active {
+            transform: translateY(0px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .quiz-button.secondary {
+            background-color: #7f8c8d; /* A neutral secondary color */
+        }
+        .quiz-button.secondary:hover {
+            background-color: #6c7a89;
+        }
+
+
+        #result {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            font-size: 1.1em;
+            font-weight: 500;
+            background-color: var(--light-text);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+        #result .correct-count { color: var(--secondary-color); }
+        #result .total-count { color: var(--primary-color); }
+
+        #warningBox {
+  display: none;
+  position: fixed;
+  top: 20px;                  
+  left: 50%;                  
+  transform: translateX(-50%);
+  background: #f81d1d;
+  color: #ffffff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 9999;
+}
+
+    </style>
+</head>
+<body>
+<div class="game-layout">
+<div class="header">Joggen: Mehr als nur Laufen</div>
+<div class="columns-container">
+<!-- Left: Paragraph with blanks -->
+<div class="quiz-text">
+<h3>Joggen: Mehr als nur Laufen</h3>
+<p>Auto, Rolltreppe, Fahrstuhl - das moderne Leben ist <span class="blank" data-answer="bequem"></span> geworden . Ein Großteil der Bevölkerung verbringt den Tag sitzend. Zum Leidwesen unseres Körpers, denn das geht zu Lasten der Gesundheit. Herz - Kreislauf - Erkrankungen <span class="blank" data-answer="sind"></span> in den westlichen Industrieländern mittlerweile die Todes Ursache Nummer Eins . Dennoch: Rund zehn Millionen Menschen in Deutschland joggen, etwa acht Millionen gehen Inline - Skaten oder Rad fahren, jeder Dritte schwimmt. Wer regelmäßig, richtig und vor allem in Maßen trainiert, fördert Gesundheit, Körper- und Selbstbewusstsein.</p>
+<p>Zahlreiche Sportarten bieten einen einfachen und abwechslungsreichen Einstieg auch für Ungeübte. Vom Klassiker Jogging bis hin zu Walking, Radfahren, Schwimmen, Aerobic, Inline - Skating und Langlauf im Winter. Wichtig ist <span class="blank" data-answer="dabei"></span> richtig zu trainieren, den Körper nicht zu überfordern - vor allem nach einer längeren ' Sportpause ! Empfehlenswert ist aerobes Herz - Kreislauf - Training, Das bedeutet Ausdauertraining <span class="blank" data-answer="ist"></span> Verbrennung von Sauerstoff . Dreimal in der Woche 30 bis 40 Minuten genügen. Dabei <span class="blank" data-answer="sollte"></span> der Puls kontrolliert werden . Der Richtwert ist hier 180 minus Lebensalter. Dann wird auch Fett verbrannt, der Körper nicht überfordert.</p>
+<p><span class="blank" data-answer="dass"></span> mehr Menschen den Schritt in ein aktiveres Leben wagen sollten , machen zahlreiche Stu dien deutlich : Rund 40 Prozent <span class="blank" data-answer="aller"></span> Deutschen bringen zu viel auf die Waage , jeder zehnte ist sogar stark fettleibig - Tendenz steigend . Auch vor Kindern und Jugendlichen macht diese Entwicklung nicht halt. Oft fehlt die Zeit für regelmäßiges Essen, Sport und Entspannung. Der Körper quittiert dies meist mit Herz - Kreislauf - Erkrankungen, nicht selten mit <span class="blank" data-answer="einem"></span> Herzinfarkt - auch , und immer häufiger <span class="blank" data-answer="bei"></span> Frauen.</p>
+<p>Ausdauersport hingegen wirkt auf Herz, Gefäße, Muskeln, Körpergewicht, Hormone und Stimmungen. Stress wird wegtrainiert, Krankheiten geheilt und vorgebeugt. Zusammen mit der richtigen Ernährung minimiert sich das Risiko, einen Herzinfarkt oder Schlaganfall zu erleiden, <span class="blank" data-answer="wie"></span> Milch und Milchprodukte, pflanzliche Lebensmittel wie Vollkornprodukte, Obst, Gemüse, Salat, magere Wurst und Käsesorten unterstützen das richtige Training.</p>
+</div>
+<!-- Right: Draggable answers -->
+<div class="word-bank-container">
+<div class="word-bank">
+<span class="draggable" data-word="erheblich" draggable="true">erheblich</span>
+<span class="draggable" data-word="schnell" draggable="true">schnell</span>
+<span class="draggable" data-word="immer" draggable="true">immer</span>
+<span class="draggable" data-word="wird" draggable="true">wird</span>
+<span class="draggable" data-word="dass" draggable="true">dass</span>
+<span class="draggable" data-word="einem" draggable="true">einem</span>
+<span class="draggable" data-word="aller" draggable="true">aller</span>
+<span class="draggable" data-word="sollte" draggable="true">sollte</span>
+<span class="draggable" data-word="ist" draggable="true">ist</span>
+<span class="draggable" data-word="sind" draggable="true">sind</span>
+<span class="draggable" data-word="bequem" draggable="true">bequem</span>
+<span class="draggable" data-word="unter" draggable="true">unter</span>
+<span class="draggable" data-word="bei" draggable="true">bei</span>
+<span class="draggable" data-word="dabei" draggable="true">dabei</span>
+<span class="draggable" data-word="wie" draggable="true">wie</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Buttons and Result -->
+<div class="button-container">
+<button class="quiz-button" onclick="checkAnswers()"><i class="fas fa-paper-plane"></i> Antworten prüfen</button>
+<a class="quiz-button secondary" href="/index2">
+<i class="fas fa-home"></i> Zurück zur Startseite
+        </a>
+</div>
+<div id="result"></div> <!-- Result will be shown here -->
+<!-- JavaScript (slightly modified to use classes for styling feedback) -->
+<script>
+        let blanks = document.querySelectorAll(".blank");
+        let draggables = document.querySelectorAll(".draggable");
+        let selectedDraggable = null; // Stores the currently selected draggable element
+
+        function makeDraggableClickable(draggableEl) {
+            draggableEl.addEventListener("dragstart", event => {
+                event.dataTransfer.setData("text", event.target.dataset.word);
+                draggableEl.classList.add("dragging-style"); // Add dragging style
+            });
+            draggableEl.addEventListener("dragend", () => {
+                draggableEl.classList.remove("dragging-style"); // Remove dragging style
+            });
+
+            draggableEl.addEventListener("click", () => {
+                // Remove selected style from any previously selected draggable
+                if (selectedDraggable) {
+                    selectedDraggable.classList.remove("selected-word-style");
+                }
+
+                if (selectedDraggable === draggableEl) {
+                    selectedDraggable = null; // Deselect if clicked again
+                } else {
+                    selectedDraggable = draggableEl;
+                    selectedDraggable.classList.add("selected-word-style"); // Add selected style
+                }
+            });
+        }
+
+        draggables.forEach(makeDraggableClickable);
+
+        blanks.forEach(blank => {
+            blank.addEventListener("dragover", event => {
+                event.preventDefault();
+                blank.classList.add("drag-over");
+            });
+            blank.addEventListener("dragleave", () => {
+                blank.classList.remove("drag-over");
+            });
+
+            blank.addEventListener("drop", event => {
+                event.preventDefault();
+                blank.classList.remove("drag-over");
+                const droppedWord = event.dataTransfer.getData("text");
+                const draggedEl = document.querySelector(`.draggable[data-word="${droppedWord}"]`);
+
+                if (blank.dataset.userAnswer && blank.dataset.userAnswer !== "") {
+                    restoreToWordBank(blank.dataset.userAnswer);
+                }
+
+                if (draggedEl) {
+                    // Move the original draggable element from word bank to the quiz-text (hidden)
+                    // or just mark it as used. For simplicity, we'll hide it.
+                    draggedEl.style.display = 'none';
+                }
+                
+                blank.textContent = droppedWord;
+                blank.dataset.userAnswer = droppedWord;
+                // Reset any selection from word bank
+                if(selectedDraggable) {
+                    selectedDraggable.classList.remove("selected-word-style");
+                    selectedDraggable = null;
+                }
+            });
+
+            blank.addEventListener("click", () => {
+                if (!selectedDraggable) return; // Only proceed if a word is selected from bank
+
+                const wordToFill = selectedDraggable.dataset.word;
+
+                if (blank.dataset.userAnswer && blank.dataset.userAnswer !== "") {
+                    restoreToWordBank(blank.dataset.userAnswer); // Return old word
+                }
+
+                blank.textContent = wordToFill;
+                blank.dataset.userAnswer = wordToFill;
+
+                selectedDraggable.style.display = 'none'; // Hide the used word from bank
+                selectedDraggable.classList.remove("selected-word-style");
+                selectedDraggable = null; // Deselect
+            });
+        });
+
+        function restoreToWordBank(wordText) {
+            const wordElInBank = document.querySelector(`.word-bank .draggable[data-word="${wordText}"]`);
+            if (wordElInBank) {
+                wordElInBank.style.display = 'flex'; // Show it again
+            }
+            // Note: If you were actually moving DOM elements, you'd append it back.
+            // For this version, we assume words are unique and just hide/show.
+        }
+        
+        // Make word bank droppable to return words
+        const wordBankContainer = document.querySelector(".word-bank-container"); // Target the styled container
+        wordBankContainer.addEventListener("dragover", event => {
+            event.preventDefault();
+            wordBankContainer.classList.add("drag-over"); // Visual feedback for dropping on word bank
+        });
+        wordBankContainer.addEventListener("dragleave", () => {
+            wordBankContainer.classList.remove("drag-over");
+        });
+        wordBankContainer.addEventListener("drop", event => {
+            event.preventDefault();
+            wordBankContainer.classList.remove("drag-over");
+            const droppedWord = event.dataTransfer.getData("text");
+            const draggedElOriginalParent = document.querySelector(`.draggable[data-word="${droppedWord}"]`);
+
+            // Find the blank that currently holds this word
+            let sourceBlank = null;
+            blanks.forEach(b => {
+                if (b.dataset.userAnswer === droppedWord) {
+                    sourceBlank = b;
+                }
+            });
+
+            if (sourceBlank) {
+                sourceBlank.textContent = ""; // Clear the blank visually (or use a placeholder like "____")
+                sourceBlank.dataset.userAnswer = ""; // Clear the stored answer
+                sourceBlank.style.background = ""; // Reset any feedback color
+            }
+
+            if (draggedElOriginalParent) {
+                 draggedElOriginalParent.style.display = 'flex'; // Make it visible in the word bank
+            }
+        });
+
+
+        function checkAnswers() {
+            let score = 0;
+            blanks.forEach(blank => {
+                // Reset visual feedback before re-checking
+                blank.style.background = ""; // Reset general background
+                if (blank.dataset.userAnswer) { // If it's filled, apply default filled style
+                    blank.style.backgroundColor = 'var(--primary-color)';
+                    blank.style.color = 'var(--light-text)';
+                } else {
+                     blank.style.color = 'var(--primary-color)'; // Default empty text color
+                }
+
+
+                if (blank.dataset.userAnswer && blank.dataset.userAnswer === blank.dataset.answer) {
+                    blank.style.backgroundColor = "var(--secondary-color)"; // Green for correct
+                    blank.style.color = "var(--light-text)";
+                    score++;
+                } else if (blank.dataset.userAnswer && blank.dataset.userAnswer !== "") { // Filled but incorrect
+                    blank.style.backgroundColor = "var(--danger-color)"; // Red for incorrect
+                    blank.style.color = "var(--light-text)";
+                } else { // Not filled, but expected an answer
+                    blank.style.borderColor = "var(--danger-color)"; // Or some other indication
+                    blank.style.borderBottom = "2px dashed var(--danger-color)";
+                }
+            });
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = 
+                `Ergebnis: <span class="correct-count">${score}</span> / <span class="total-count">${blanks.length}</span>`;
+        }
+    </script>
+<script>
+let pingTimeout;
+let logoutTimer;
+let warningTimer;
+let countdownTimer;
+let lastPing = 0;
+
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+const WARNING_BEFORE_LOGOUT = 30 * 1000; // 30 seconds
+const warningBox = document.getElementById("warningBox");
+const countdownEl = document.getElementById("countdown");
+
+function sendPing() {
+    const now = Date.now();
+    if (now - lastPing < 10000) return; 
+    lastPing = now;
+    fetch("/ping").catch(() => {});
+}
+
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    clearInterval(countdownTimer);
+
+    warningBox.style.display = "none"; // 🟡 hide warning if active again
+
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Show warning 30s before logout
+    warningTimer = setTimeout(() => {
+        let remaining = 30;
+        warningBox.style.display = "block";
+        countdownEl.textContent = remaining;
+
+        countdownTimer = setInterval(() => {
+            remaining--;
+            countdownEl.textContent = remaining;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+            }
+        }, 1000);
+    }, INACTIVITY_LIMIT - WARNING_BEFORE_LOGOUT);
+
+    // Auto logout
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/");
+    }, INACTIVITY_LIMIT);
+}
+
+// Events
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+window.addEventListener("pageshow", sendPing);
+window.addEventListener("beforeunload", sendPing);
+
+resetTimers();
+</script>
+</body></html>

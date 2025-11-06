@@ -1,0 +1,525 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Teil 3 Sprachbausteine</title>
+<!-- Font Awesome for Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+        :root {
+            --primary-color: #3498db; /* A slightly more vibrant blue */
+            --secondary-color: #2ecc71; /* Green for success */
+            --danger-color: #e74c3c; /* Red for error */
+            --light-bg: #ecf0f1;
+            --dark-text: #2c3e50;
+            --light-text: #ffffff;
+            --border-radius: 10px;
+            --box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            --box-shadow-hover: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-text);
+            animation: fadeInPage 0.8s ease-out;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        @keyframes fadeInPage {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            padding: 20px 25px;
+            margin-bottom: 25px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            font-size: 26px;
+            font-weight: 600;
+            box-shadow: var(--box-shadow);
+            letter-spacing: 0.5px;
+        }
+
+        .game-layout { /* Acts as the .container */
+            display: flex;
+            flex-direction: column; /* Stack header, then content */
+            gap: 20px; /* Gap between header and columns, and between columns on wider screens */
+            max-width: 1200px;
+            margin: 0 auto; /* Centered */
+        }
+
+        .columns-container { /* New wrapper for the two columns */
+            display: flex;
+            flex-direction: column; /* Mobile first */
+            gap: 20px;
+            width: 100%;
+        }
+
+        @media(min-width: 768px) {
+            .game-layout {
+                gap: 25px;
+            }
+            .columns-container {
+                flex-direction: row; /* Side-by-side on larger screens */
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+        }
+
+        .quiz-text, .word-bank-container { /* Common styling for column wrappers */
+            background-color: var(--light-text);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            max-height: 70vh; 
+            overflow-y: auto;
+             /* Custom scrollbar styling */
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) var(--light-bg);
+        }
+        .quiz-text::-webkit-scrollbar,
+        .word-bank-container::-webkit-scrollbar {
+          width: 8px;
+        }
+        .quiz-text::-webkit-scrollbar-track,
+        .word-bank-container::-webkit-scrollbar-track {
+          background: var(--light-bg);
+          border-radius: var(--border-radius);
+        }
+        .quiz-text::-webkit-scrollbar-thumb,
+        .word-bank-container::-webkit-scrollbar-thumb {
+          background-color: var(--primary-color);
+          border-radius: var(--border-radius);
+          border: 2px solid var(--light-bg);
+        }
+
+
+        .quiz-text { /* Specific to left column */
+            flex: 3;
+            text-align: left;
+            line-height: 1.8; /* Increased line height for readability with blanks */
+        }
+         .quiz-text p {
+            margin-bottom: 1.5em;
+        }
+
+        .word-bank-container { /* Specific to right column wrapper */
+            flex: 1;
+            min-width: 50px; /* Ensure it has some width */
+        }
+        
+        .word-bank { /* Actual container for draggable words */
+            display: flex;
+            flex-direction: column; /* Stack words vertically */
+            gap: 10px;
+        }
+
+
+        .blank {
+            background-color: transparent; /* Initially transparent */
+            color: var(--primary-color); /* Color for the filled text */
+            padding: 3px 8px;
+            border-radius: 5px;
+            border-bottom: 2px dashed #ccc; /* Dashed underline for empty state */
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 70px; /* Adjust as needed for average word length */
+            text-align: center;
+            display: inline-block;
+            margin: 0 3px;
+            transition: background-color 0.3s, border-color 0.3s;
+            vertical-align: baseline;
+        }
+        .blank:hover, .blank.drag-over {
+            border-bottom-color: var(--primary-color);
+            background-color: #eef8ff;
+        }
+        /* Style for blank when it has content (JS will fill textContent) */
+        .blank[data-user-answer] {
+            border-bottom: 2px solid transparent; /* Remove underline when filled */
+            background-color: var(--primary-color); /* Default filled style before check */
+            color: var(--light-text);
+        }
+        /* JS will override background for correct/incorrect */
+
+
+        .draggable {
+            background-color: #e0e0e0;
+            color: var(--dark-text);
+            padding: 10px 15px; /* Adjusted padding */
+            border-radius: var(--border-radius);
+            cursor: grab;
+            display: flex; /* Use flex for alignment if needed */
+            align-items: center;
+            justify-content: center; /* Center text */
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+            font-size: 0.95em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            width: 100%; /* Stack vertically */
+            box-sizing: border-box;
+            text-align: center;
+        }
+        .draggable:hover {
+            background-color: #d0d0d0;
+            transform: translateY(-2px); /* Subtle lift */
+            box-shadow: var(--box-shadow-hover);
+        }
+        .draggable.selected-word-style { /* Class to be added by JS on click */
+            outline: 2px solid var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-color_alpha, rgba(52, 152, 219, 0.3));
+            background-color: #cce7ff;
+        }
+        .draggable.dragging-style { /* Class to be added by JS on dragstart */
+            opacity: 0.6;
+            transform: scale(0.95);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .button-container {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .quiz-button {
+            padding: 12px 25px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--box-shadow);
+            text-decoration: none; /* For <a> tags styled as buttons */
+        }
+        .quiz-button:hover {
+            background-color: #2980b9; /* Darker shade of primary */
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow-hover);
+        }
+        .quiz-button:active {
+            transform: translateY(0px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .quiz-button.secondary {
+            background-color: #7f8c8d; /* A neutral secondary color */
+        }
+        .quiz-button.secondary:hover {
+            background-color: #6c7a89;
+        }
+        
+        #resetBtn {
+  background-color: #6c7a89;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  min-width: 200px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#resetBtn {
+  background-color: #dc3545;
+  color: white;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  min-width: 200px;
+  text-align: center;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#resetBtn:hover {
+  background-color: #bb2d3b;
+}
+
+    </style>
+</head>
+<body>
+<div class="game-layout">
+<div class="header">Versicherung</div>
+<div class="columns-container">
+<!-- Left: Paragraph with blanks -->
+<div class="quiz-text">
+<h4>Frankfurter Allianz<br/>
+                Bahnstr. 99<br/>
+                Max Kuhne<br/>
+                Tel.: 069-951670<br/>
+                Frankfurt, den ....</h4>
+<h3>Neuer Berater für Ihre Versicherungen</h3>
+<p>Sehr geehrter Herr Frankel,</p>
+<p>wir möchten Sie darüber informieren, <span class="blank" data-answer="DASS"></span> Ihre Versicherungen künftig von Herrn Max Kuhne bearbeitet werden. Ihm wurden <span class="blank" data-answer="IHRE"></span> Unterlangen übergeben.</p>
+<p>Alle Kundendaten <span class="blank" data-answer="WERDEN"></span> selbstverständlich streng vertraulich behandelt. Wenn Sie also <span class="blank" data-answer="FRAGEN"></span> zu Ihren Versicherungen haben, wenden Sie sich in Zukunft bitte an Herrn Kuhne. Er berät und <span class="blank" data-answer="INFORMIERT"></span> Sie gern. Auch im Schadensfall <span class="blank" data-answer="HILFT"></span> er Ihnen schnell und zuverlässig weiter. Im Übrigen möchten wir uns <span class="blank" data-answer="FÜR"></span> einen Fehler in unserer letzten Beitragsrechnung entschuldigen. Leider ist <span class="blank" data-answer="DORT"></span> die Adresse von Herrn Kuhne nicht korrekt.</p>
+<p>Seine <span class="blank" data-answer="RICHTIGE"></span> Anschrift und Telefonnummer finden Sie auf diesem Brief oben rechts.</p>
+<p>Wir danken <span class="blank" data-answer="IHNEN"></span> für Ihr Vertrauen.</p>
+<p>Mit freundlichen Grüßen</p>
+<p>Ihre Frankfurter Allianz</p>
+</div>
+<!-- Right: Draggable answers -->
+<div class="word-bank-container">
+<div class="word-bank">
+<span class="draggable" data-word="ANTWORTEN" draggable="true">ANTWORTEN</span>
+<span class="draggable" data-word="AUF" draggable="true">AUF</span>
+<span class="draggable" data-word="DASS" draggable="true">DASS</span>
+<span class="draggable" data-word="DORT" draggable="true">DORT</span>
+<span class="draggable" data-word="FRAGEN" draggable="true">FRAGEN</span>
+<span class="draggable" data-word="FÜR" draggable="true">FÜR</span>
+<span class="draggable" data-word="HABEN" draggable="true">HABEN</span>
+<span class="draggable" data-word="HILFT" draggable="true">HILFT</span>
+<span class="draggable" data-word="IHNEN" draggable="true">IHNEN</span>
+<span class="draggable" data-word="IHRE" draggable="true">IHRE</span>
+<span class="draggable" data-word="INFORMIERT" draggable="true">INFORMIERT</span>
+<span class="draggable" data-word="OB" draggable="true">OB</span>
+<span class="draggable" data-word="RICHTIGE" draggable="true">RICHTIGE</span>
+<span class="draggable" data-word="WERDEN" draggable="true">WERDEN</span>
+<span class="draggable" data-word="ZU" draggable="true">ZU</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Buttons and Result -->
+<div class="button-container">
+<button class="quiz-button" onclick="checkAnswers()"><i class="fas fa-paper-plane"></i> Antworten prüfen</button>
+<button id="resetBtn">Zurücksetzen</button>
+<a class="quiz-button secondary" href="/index1">
+<i class="fas fa-home"></i> Zurück zur Startseite
+        </a>
+</div>
+<div id="result"></div> <!-- Result will be shown here -->
+<!-- JavaScript (slightly modified to use classes for styling feedback) -->
+<script>
+        let blanks = document.querySelectorAll(".blank");
+        let draggables = document.querySelectorAll(".draggable");
+        let selectedDraggable = null; // Stores the currently selected draggable element
+
+        function makeDraggableClickable(draggableEl) {
+            draggableEl.addEventListener("dragstart", event => {
+                event.dataTransfer.setData("text", event.target.dataset.word);
+                draggableEl.classList.add("dragging-style"); // Add dragging style
+            });
+            draggableEl.addEventListener("dragend", () => {
+                draggableEl.classList.remove("dragging-style"); // Remove dragging style
+            });
+
+            draggableEl.addEventListener("click", () => {
+                // Remove selected style from any previously selected draggable
+                if (selectedDraggable) {
+                    selectedDraggable.classList.remove("selected-word-style");
+                }
+
+                if (selectedDraggable === draggableEl) {
+                    selectedDraggable = null; // Deselect if clicked again
+                } else {
+                    selectedDraggable = draggableEl;
+                    selectedDraggable.classList.add("selected-word-style"); // Add selected style
+                }
+            });
+        }
+
+        draggables.forEach(makeDraggableClickable);
+
+        blanks.forEach(blank => {
+            blank.addEventListener("dragover", event => {
+                event.preventDefault();
+                blank.classList.add("drag-over");
+            });
+            blank.addEventListener("dragleave", () => {
+                blank.classList.remove("drag-over");
+            });
+
+            blank.addEventListener("drop", event => {
+                event.preventDefault();
+                blank.classList.remove("drag-over");
+                const droppedWord = event.dataTransfer.getData("text");
+                const draggedEl = document.querySelector(`.draggable[data-word="${droppedWord}"]`);
+
+                if (blank.dataset.userAnswer && blank.dataset.userAnswer !== "") {
+                    restoreToWordBank(blank.dataset.userAnswer);
+                }
+
+                if (draggedEl) {
+                    // Move the original draggable element from word bank to the quiz-text (hidden)
+                    // or just mark it as used. For simplicity, we'll hide it.
+                    draggedEl.style.display = 'none';
+                }
+                
+                blank.textContent = droppedWord;
+                blank.dataset.userAnswer = droppedWord;
+                // Reset any selection from word bank
+                if(selectedDraggable) {
+                    selectedDraggable.classList.remove("selected-word-style");
+                    selectedDraggable = null;
+                }
+            });
+
+            blank.addEventListener("click", () => {
+                if (!selectedDraggable) return; // Only proceed if a word is selected from bank
+
+                const wordToFill = selectedDraggable.dataset.word;
+
+                if (blank.dataset.userAnswer && blank.dataset.userAnswer !== "") {
+                    restoreToWordBank(blank.dataset.userAnswer); // Return old word
+                }
+
+                blank.textContent = wordToFill;
+                blank.dataset.userAnswer = wordToFill;
+
+                selectedDraggable.style.display = 'none'; // Hide the used word from bank
+                selectedDraggable.classList.remove("selected-word-style");
+                selectedDraggable = null; // Deselect
+            });
+        });
+
+        function restoreToWordBank(wordText) {
+            const wordElInBank = document.querySelector(`.word-bank .draggable[data-word="${wordText}"]`);
+            if (wordElInBank) {
+                wordElInBank.style.display = 'flex'; // Show it again
+            }
+            // Note: If you were actually moving DOM elements, you'd append it back.
+            // For this version, we assume words are unique and just hide/show.
+        }
+        
+        // Make word bank droppable to return words
+        const wordBankContainer = document.querySelector(".word-bank-container"); // Target the styled container
+        wordBankContainer.addEventListener("dragover", event => {
+            event.preventDefault();
+            wordBankContainer.classList.add("drag-over"); // Visual feedback for dropping on word bank
+        });
+        wordBankContainer.addEventListener("dragleave", () => {
+            wordBankContainer.classList.remove("drag-over");
+        });
+        wordBankContainer.addEventListener("drop", event => {
+            event.preventDefault();
+            wordBankContainer.classList.remove("drag-over");
+            const droppedWord = event.dataTransfer.getData("text");
+            const draggedElOriginalParent = document.querySelector(`.draggable[data-word="${droppedWord}"]`);
+
+            // Find the blank that currently holds this word
+            let sourceBlank = null;
+            blanks.forEach(b => {
+                if (b.dataset.userAnswer === droppedWord) {
+                    sourceBlank = b;
+                }
+            });
+
+            if (sourceBlank) {
+                sourceBlank.textContent = ""; // Clear the blank visually (or use a placeholder like "____")
+                sourceBlank.dataset.userAnswer = ""; // Clear the stored answer
+                sourceBlank.style.background = ""; // Reset any feedback color
+            }
+
+            if (draggedElOriginalParent) {
+                 draggedElOriginalParent.style.display = 'flex'; // Make it visible in the word bank
+            }
+        });
+
+
+        function checkAnswers() {
+            let score = 0;
+            blanks.forEach(blank => {
+                // Reset visual feedback before re-checking
+                blank.style.background = ""; // Reset general background
+                if (blank.dataset.userAnswer) { // If it's filled, apply default filled style
+                    blank.style.backgroundColor = 'var(--primary-color)';
+                    blank.style.color = 'var(--light-text)';
+                } else {
+                     blank.style.color = 'var(--primary-color)'; // Default empty text color
+                }
+
+
+                if (blank.dataset.userAnswer && blank.dataset.userAnswer === blank.dataset.answer) {
+                    blank.style.backgroundColor = "var(--secondary-color)"; // Green for correct
+                    blank.style.color = "var(--light-text)";
+                    score++;
+                } else if (blank.dataset.userAnswer && blank.dataset.userAnswer !== "") { // Filled but incorrect
+                    blank.style.backgroundColor = "var(--danger-color)"; // Red for incorrect
+                    blank.style.color = "var(--light-text)";
+                } else { // Not filled, but expected an answer
+                    blank.style.borderColor = "var(--danger-color)"; // Or some other indication
+                    blank.style.borderBottom = "2px dashed var(--danger-color)";
+                }
+            });
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = 
+                `Ergebnis: <span class="correct-count">${score}</span> / <span class="total-count">${blanks.length}</span>`;
+        }
+
+        document.getElementById("resetBtn").addEventListener("click", () => {
+  // Reset each blank: remove user answer, text content, styles
+  document.querySelectorAll(".blank").forEach((blank, index) => {
+    blank.textContent = ""; // Or you can set to something like "____"
+    blank.removeAttribute("data-user-answer");
+    blank.style.backgroundColor = "";
+    blank.style.color = "";
+    blank.style.borderColor = "";
+    blank.style.borderBottom = "2px dashed #ccc";
+  });
+
+  // Show all draggable words again
+  document.querySelectorAll(".draggable").forEach(draggable => {
+    draggable.style.display = "flex";
+    draggable.classList.remove("selected-word-style", "dragging-style");
+  });
+
+  // Clear selected word reference
+  selectedDraggable = null;
+
+  // Clear result message
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = "";
+});
+
+    </script>
+<script>
+let pingTimeout;
+let logoutTimer;
+const INACTIVITY_LIMIT = 6 * 60 * 1000; // 6 minutes
+
+function sendPing() {
+    fetch("/ping").catch(() => {});
+}
+
+// Reset timers when user interacts
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+
+    // Ping immediately and schedule another one in 1 min if idle
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Auto logout after 6 min inactivity
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/"); // redirect to homepage/login
+    }, INACTIVITY_LIMIT);
+}
+
+// Events that count as activity
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+// Start timers when page loads
+resetTimers();
+</script>
+</body></html>

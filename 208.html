@@ -1,0 +1,220 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>IRIS teil:2</title>
+<style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f1f1f1;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: row;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .text-section {
+      flex: 1;
+      padding: 20px;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+    }
+
+    .quiz-section {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .question-card {
+      background: #e9f0f7;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 20px;
+    }
+
+    .question-card h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .question-card label {
+      display: block;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .result {
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    .correct {
+  background-color: #d4edda;
+  border: 1px solid #28a745;
+}
+
+.incorrect {
+  background-color: #f8d7da;
+  border: 1px solid #dc3545;
+}
+
+  </style>
+</head>
+<body>
+<div class="container">
+<!-- Left: Text -->
+<div class="text-section">
+<h1>Informationsverhaltungen sind wichtige Grundlagen für die Berufswahl</h1>
+<p>Die Entscheidung, welchen Beruf man erlernen will, ist nicht leicht. Große) Firmen bieten spezielle Information Veranstaltung für Schülerinnen und Schüler an. Wir haben einen Info – Nachmittag der Bank Credit Suisse in Bern beucht und uns danach bei den Jugendlichen umgehört.</p>
+<p>20 Schülerinnen und Schüler kann Irene Leiser um Punkt 13 Uhr zu diesem Info – Nachmittag Begrüßen. Die jugendlichen kommen aus dem ganzen Kanton Bern und haben sich vorher bei der Bank angemeldet. Viermal im Frühling und zwei weitere Male im August werden diese Info Veranstaltungen bei der Credit Suisse durchgeführt. Sie richten sich vor allem an Schülerinnen und Schüler aus der 8. Klasse. Irene Leiser hat gute Erfahrungen mit diesen Veranstaltungen gemacht die Jugendlichen können danach ihre Erwartungen an den Beruf und die Ausbildung an die Realität anpassen.</p>
+<p>Im ersten Teil des Nachmittags erklärt Frau Leiser die Hauptaufgaben einer Bank und stellt die Firma vor. Danach treten die Lehrlinge in Aktion: Daniel Sommer und Linda Schmidt sind im Zweiten Lehrjahre und erzählen aus ihrem Berufsalltag. Dieser Teil gefällt den Schülerinnen und Schülern besonders gut.</p>
+<p>Die Jugendlichen identifizieren sich mit den Lehrringe und sehen, wo sie selber in zwei Jahren beruflich stehen könnten. Das fasziniert sehr zum Schluss folge Informationen darüber, welche Voraussetzungen man mitbringen muss und wie man sich bewirbt. Um 16:30 Uhr schließt Frau Leiser die Veranstaltung. Sie ist zufrieden mit dem Nachmittag. Die Gruppe war sehr aufmerksam. Interessierten Schülerinnen und Schüler gibt sie folgenden Tipp: Gehen Sie auch noch zu anderen Firmen. Fragen Sie dort möglichst viele Lehrlinge und Mitarbeiter nach ihren Erfahrungen Wir haben danach eine Schülerin und einen Schüler befragt wie sie den Nachmittag erlebt haben:</p>
+<h3>Tugba Kaptan aus Biel, 8. Klasse</h3>
+<p>Mich fasziniert das Umfeld einer Bank. Ich hätte mehr Leute bei der Arbeit sehen wollen zum Beispiel am Schalter. Aber der Tag hat mir weiter geholfen. Ich habe viele Dinge erfahren die ich bis her nicht gewusst habe. Solche Nachmittag ist ideal weil da schulfrei ist.</p>
+<h3>Alan Blank aus Mühleberg,8. Klasse</h3>
+<p>Die Bank ist eigentlich mein Traumbiet und bietet mir nach der Lehre viele Entscheidungsmöglichkeiten. Ich habe mich umgeschaut und mich über viele Beruf informiert. Jetzt weiß ich, dass ich eine Lehre in diesem Bereich machen will. Ich suche nach der optimalen Lehrestelle. Eine Großbank wäre toll für mich. Dieser Nachmittag hat mir gefallen. Alles war sehr gut organisiert. Ich kann solche Veranstaltungen nur empfehlen . Was mir persönlich gefehlt hat, ist eine Führung durch den Betrieb. Es ist wichtig zu sehen, wie das alles genau vor sich geht.</p>
+</div>
+<!-- Right: Quiz -->
+<div class="quiz-section">
+<form id="quizForm">
+<div class="question-card">
+<h3>1. Um Berufe kennenzulernen, </h3>
+<label><input name="q1" type="radio" value="a"/> arbeiten Berner Schüler in den Ferien bei großen Firmen.</label>
+<label><input name="q1" type="radio" value="b"/> nehmen Berner Schüler an Informationsveranstaltungen von großen Firmen teil.</label>
+<label><input name="q1" type="radio" value="c"/> sollen Berner Schüler zweimal jährlich ein Praktikum machen.</label>
+</div>
+<div class="question-card">
+<h3>2. Frau Leiser </h3>
+<label><input name="q2" type="radio" value="a"/> erzählt aus ihrem Berufsalltag in der Bank.</label>
+<label><input name="q2" type="radio" value="b"/> stellt die wichtigsten Aufgaben der Bank vor.</label>
+<label><input name="q2" type="radio" value="c"/> zeigt den Jugendlichen die ganze Firma.</label>
+</div>
+<div class="question-card">
+<h3>3. An dem Informationsnachmittag </h3>
+<label><input name="q3" type="radio" value="a"/> bekamen die Jugendlichen eine Liste mit Bewerbungstipps.</label>
+<label><input name="q3" type="radio" value="b"/> war die Gruppe interessiert und hat gut zugehört.</label>
+<label><input name="q3" type="radio" value="c"/> wurden viele Fragen gestellt.</label>
+</div>
+<div class="question-card">
+<h3>4. Tugba Kaptan </h3>
+<label><input name="q4" type="radio" value="a"/> fand es gut, dass sie am Schalter arbeiten durfte.</label>
+<label><input name="q4" type="radio" value="b"/> fand es schade, dass an diesem Nachmittag die Schule ausgefallen ist.</label>
+<label><input name="q4" type="radio" value="c"/> hat viele Informationen bekommen.</label>
+</div>
+<div class="question-card">
+<h3>5.  Alan Blank</h3>
+<label><input name="q5" type="radio" value="a"/> möchte später gern bei einer Bank arbeiten.</label>
+<label><input name="q5" type="radio" value="b"/> möchte viele Dinge besser nicht selbst entscheiden.</label>
+<label><input name="q5" type="radio" value="c"/> weiß noch nicht, was er machen will.</label>
+</div>
+<!-- Weitere Fragen... -->
+<button onclick="checkAnswers()" type="button">Antworten prüfen</button>
+<div class="result" id="result"></div>
+<div style="padding: 10px 20px; font-size: 16px; background-color: lab(42.45% 44.97 -83.12); color: white; border-radius: 8px; text-align: center;">
+<a href="/index1" style="text-decoration: none;">
+<div style="padding: 10px 20px; font-size: 16px; background-color: lab(42.45% 44.97 -83.12); color: white; border-radius: 8px; text-align: center;">
+                Zurück zur Startseite
+              </div>
+</a>
+</div>
+</form>
+</div>
+</div>
+<script>
+    function checkAnswers() {
+      const answers = {
+        q1: "b",
+        q2: "b",
+        q3: "b",
+        q4: "c",
+        q5: "a"
+      };
+  
+      let score = 0;
+      let total = Object.keys(answers).length;
+  
+      for (let q in answers) {
+        const correct = answers[q];
+        const selected = document.querySelector(`input[name="${q}"]:checked`);
+        const questionCard = document.querySelector(`[name="${q}"]`).closest(".question-card");
+  
+        // Remove previous styles
+        questionCard.classList.remove("correct", "incorrect");
+  
+        if (selected) {
+          if (selected.value === correct) {
+            score++;
+            questionCard.classList.add("correct");
+          } else {
+            questionCard.classList.add("incorrect");
+          }
+        } else {
+          questionCard.classList.add("incorrect");
+        }
+  
+        // Highlight the correct answer in green
+        const allOptions = document.querySelectorAll(`input[name="${q}"]`);
+        allOptions.forEach(opt => {
+          if (opt.value === correct) {
+            opt.parentElement.style.fontWeight = "bold";
+            opt.parentElement.style.color = "green";
+          }
+        });
+      }
+  
+      document.getElementById("result").innerText =
+        `Du hast ${score} von ${total} Fragen richtig beantwortet.`;
+        
+    }
+  </script>
+<script>
+let pingTimeout;
+let logoutTimer;
+const INACTIVITY_LIMIT = 6 * 60 * 1000; // 6 minutes
+
+function sendPing() {
+    fetch("/ping").catch(() => {});
+}
+
+// Reset timers when user interacts
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+
+    // Ping immediately and schedule another one in 1 min if idle
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Auto logout after 6 min inactivity
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/"); // redirect to homepage/login
+    }, INACTIVITY_LIMIT);
+}
+
+// Events that count as activity
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+// Start timers when page loads
+resetTimers();
+</script>
+</body></html>
