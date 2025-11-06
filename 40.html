@@ -1,0 +1,524 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Lesen Teil 1 - Sport ist Gesund</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2ecc71;
+      --danger-color: #e74c3c;
+      --light-bg: #ecf0f1;
+      --dark-text: #2c3e50;
+      --light-text: #ffffff;
+      --border-radius: 10px;
+      --box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      --box-shadow-hover: 0 8px 20px rgba(0,0,0,0.15);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; margin: 0; padding: 10px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); color: var(--dark-text);
+      animation: fadeInPage 0.8s ease-out; min-height: 100vh;
+    }
+    @media (min-width: 600px) { body { padding: 15px; } }
+    @media (min-width: 992px) { body { padding: 20px; } }
+    @keyframes fadeInPage { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+    .main-header {
+      background-color: var(--primary-color); color: var(--light-text); padding: 12px 15px;
+      font-size: 20px; margin-bottom: 20px; border-radius: var(--border-radius);
+      text-align: center; font-weight: 600; box-shadow: var(--box-shadow); letter-spacing: 0.5px;
+    }
+    @media (min-width: 768px) { .main-header { padding: 20px 25px; font-size: 26px; margin-bottom: 25px; } }
+    .container { display: flex; flex-direction: row; justify-content: space-between; gap: 15px; }
+    @media(min-width: 992px) { .container { gap: 20px; } }
+    .left-column { width: 58%; flex-shrink: 0; }
+    .right-column { width: 38%; flex-shrink: 0; }
+    .quiz-scroll-container, .right-column-content {
+      background-color: var(--light-text); border-radius: var(--border-radius); padding: 10px;
+      box-shadow: var(--box-shadow); max-height: 75vh; overflow-y: auto; overflow-x: hidden;
+      scrollbar-width: thin; scrollbar-color: var(--primary-color) var(--light-bg);
+    }
+    @media (min-width: 992px) { .quiz-scroll-container, .right-column-content { padding: 15px; max-height: 70vh; } }
+    .quiz-scroll-container::-webkit-scrollbar, .right-column-content::-webkit-scrollbar { width: 6px; }
+    @media (min-width: 992px) { .quiz-scroll-container::-webkit-scrollbar, .right-column-content::-webkit-scrollbar { width: 8px; } }
+    .quiz-scroll-container::-webkit-scrollbar-track, .right-column-content::-webkit-scrollbar-track { background: var(--light-bg); border-radius: var(--border-radius); }
+    .quiz-scroll-container::-webkit-scrollbar-thumb, .right-column-content::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: var(--border-radius); border: 2px solid var(--light-bg); }
+    .question-box {
+      border: 1px solid #bdc3c7; border-left: 4px solid var(--primary-color); border-radius: var(--border-radius);
+      margin-bottom: 15px; padding: 10px; background-color: #fdfdfd;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      display: flex; flex-direction: column; min-height: 120px;
+    }
+    @media (min-width: 992px) { .question-box { border-left-width: 5px; margin-bottom: 20px; padding: 15px; min-height: 150px; } }
+    .question-box:hover { transform: translateY(-3px); box-shadow: var(--box-shadow-hover); }
+    .email-fields { margin-bottom: 8px; }
+    @media (min-width: 992px) { .email-fields { margin-bottom: 10px; } }
+    .drop-target {
+      background-color: #f9f9f9; padding: 10px; border: 2px dashed #cccccc; min-height: 40px;
+      border-radius: 6px; text-align: center; transition: background-color 0.3s, border-color 0.3s;
+      display: flex; align-items: center; justify-content: center; position: relative; cursor: pointer; /* Added cursor */
+    }
+    @media (min-width: 992px) { .drop-target { padding: 12px; min-height: 45px; border-radius: 8px; } }
+    .drop-target.empty-drop-target::before { content: "Drop here"; color: #aaa; font-style: italic; font-size: 0.8em; }
+    @media (min-width: 992px) { .drop-target.empty-drop-target::before { content: "Antwort hier ablegen"; font-size: 0.9em; } }
+    .drop-target:not(.empty-drop-target)::before { content: ""; }
+    .drop-target:hover, .drop-target.drag-over { background-color: #eef8ff; border-color: var(--primary-color); }
+    .question-text { font-size: 0.8em; color: #555; line-height: 1.5; overflow-y: auto; max-height: 200px; padding-right: 5px; }
+    @media (min-width: 992px) { .question-text { font-size: 0.9em; line-height: 1.6; max-height: 300px; } }
+    .draggable {
+      background-color: #e0e0e0; color: var(--dark-text); margin: 8px 0; padding: 8px 10px;
+      border-radius: 6px; cursor: grab; display: flex; align-items: center; justify-content: center;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s, outline 0.2s;
+      user-select: none; font-size: 0.85em; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      text-align: center; word-break: break-word;
+    }
+    @media (min-width: 992px) { .draggable { margin: 10px 0; padding: 12px 15px; border-radius: 8px; font-size: 0.95em; } }
+    .draggable:hover { background-color: #d0d0d0; transform: scale(1.02); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .draggable.dragging { opacity: 0.6; transform: scale(0.95); box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: grabbing; }
+
+    /* NEW CSS for selected draggable */
+    .draggable.selected {
+      outline: 3px solid var(--primary-color);
+      transform: scale(1.03);
+      box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+      background-color: #ddeeff;
+    }
+    .draggable.selected:hover {
+        background-color: #cce7ff;
+        transform: scale(1.03);
+    }
+
+    .drop-target.correct { background-color: #e8f5e9 !important; border: 2px solid var(--secondary-color) !important; }
+    .drop-target.correct::after {
+      content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--secondary-color);
+      position: absolute; right: 5px; top: 50%; transform: translateY(-50%); font-size: 1em;
+    }
+    @media (min-width: 992px) { .drop-target.correct::after { right: 10px; font-size: 1.2em; } }
+    .drop-target.incorrect { background-color: #ffebee !important; border: 2px solid var(--danger-color) !important; }
+    .drop-target.incorrect::after {
+      content: "\f00d"; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--danger-color);
+      position: absolute; right: 5px; top: 50%; transform: translateY(-50%); font-size: 1em;
+    }
+    @media (min-width: 992px) { .drop-target.incorrect::after { right: 10px; font-size: 1.2em; } }
+    .drop-target .draggable { background-color: var(--primary-color); color: var(--light-text); width: calc(100% - 25px); padding-right: 0; margin: 0; }
+    @media (min-width: 992px) { .drop-target .draggable { width: calc(100% - 40px); } }
+    .drop-target.correct .draggable { background-color: var(--secondary-color) !important; }
+    .drop-target.incorrect .draggable { background-color: var(--danger-color) !important; }
+    .button-container { margin-top: 20px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+    @media (min-width: 992px) { .button-container { margin-top: 25px; gap: 15px; } }
+    .quiz-button, .quiz-button-link {
+      padding: 10px 20px; border: none; background-color: var(--primary-color); color: white !important;
+      font-size: 14px; font-weight: 500; border-radius: var(--border-radius); cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: var(--box-shadow); text-decoration: none;
+    }
+    @media (min-width: 992px) { .quiz-button, .quiz-button-link { padding: 12px 25px; font-size: 16px; } }
+    .quiz-button:hover, .quiz-button-link:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: var(--box-shadow-hover); color: white !important; }
+    .quiz-button:active, .quiz-button-link:active { transform: translateY(0px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .quiz-button.secondary, .quiz-button-link.secondary { background-color: #7f8c8d; }
+    .quiz-button.secondary:hover, .quiz-button-link.secondary:hover { background-color: #6c7a89; }
+    #result {
+      text-align: center; margin-top: 20px; padding: 12px; font-size: 1em; font-weight: 500;
+      background-color: var(--light-text); border-radius: var(--border-radius); box-shadow: var(--box-shadow);
+    }
+    @media (min-width: 992px) { #result { margin-top: 25px; padding: 15px; font-size: 1.1em; } }
+    #result .correct-count { color: var(--secondary-color); }
+    #result .total-count { color: var(--primary-color); }
+
+    #warningBox {
+  display: none;
+  position: fixed;
+  top: 20px;                  
+  left: 50%;                  
+  transform: translateX(-50%);
+  background: #f81d1d;
+  color: #ffffff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 9999;
+}
+  </style>
+</head>
+<body>
+<div class="main-header">Lesen Teil 1 - Sport ist Gesund</div>
+<div class="container">
+<div class="left-column">
+<div class="quiz-scroll-container">
+<!-- Question 1 -->
+<div class="question-box" data-correct="Ein Leistungssport für jedes Alter.">
+<div class="email-fields">
+<div class="email-subject drop-target empty-drop-target" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+</div>
+<div class="question-text">
+        An der Ostküste Attikas in Griechenland lag in der Antike der Orte Marathon. Dort siegte der griechische König Milthiades im Jahr 490 vor Christus über das Heer der Perser. Der Sage nach soll ein Soldat die 42,2 km lange Strecke nach Athen gerannt sein, um die Nachricht dieses für Griechenland wichtigen Sieges zu überbringen. Bei seiner Ankunft in Athen brach er, noch während er die Nachricht verkündete, vor Erschöpfung tot zusammen. Auf diese Legende geht eine sportliche Disziplin zurück: der Marathonlauf. Bereits seit 1896 ist er olympische Disziplin, seit 1984 auch für Frauen. Die Streckenlänge von 42195 m. wurde 1924 festgelegt. Der Marathonlauf gilt als einziger Leistungssport, der bis ins hohe Alter ausgeübt werden kann. Wissenschaftler erklären das mit der menschlichen Evolution. Der Mensch jagte in der Frühzeit seine Beute so lange vor sich her, bis diese vor Erschöpfung nicht mehr weiterkonnte. Die Fähigkeit, ausdauernd über lange Strecken zu rennen, ist also in den menschlichen Genen verankert.
+          </div>
+</div>
+<!-- Question 2 -->
+<div class="question-box" data-correct="Sportbegeisterte Eltern - und auch die Babys sind beim Joggen dabei.">
+<div class="email-fields">
+<div class="email-subject drop-target empty-drop-target" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+</div>
+<div class="question-text">
+        Warum soll sich der Mensch nun auf Straßen und Wegen fortbewegen? Sich in Feld und Wald, über Stock und Stein fortzubewegen, ist mindestens ebenso interessant. Daher erfand die Autoindustrie den Geländewagen und die Fahrradindustrie das Mountainbike. Da fehlte eigentlich nur noch eine Neuentwicklung eines Gefährts, dessen Mobilitätsmöglichkeiten bisher relativ begrenzt waren: der Kinderwagen. Doch das ist jetzt auch vorbei: Im Trend liegt jetzt der Jogging-Stroller, ein Kinderwagen mit nur noch drei bereiften Rädern. Diese neuen Transportmittel für Babys können sportbegeisterte und von grenzenloser Mobilität träumende Eltern jetzt samt Kind beim Joggen oder beim Inlineskaten vor sich herschieben. Die Babys sollen begeistert sein von der Geschwindigkeit, die mit solchen Geräten erreichbar ist. Doch der die Gerätesicherheit prüfende TÜV, bei Fahrzeugbesitzern in Deutschland schon seit langem als Spielverderber bekannt, warnte vor den Jogging-Strollern: Sie haben einen ungünstigen Schwerpunkt auf der Hinterachse, d.h. sie kippen leicht nach hinten um, und sie können sich leicht selbständig machen - jedenfalls solange, bis die Babys das Bremsen gelernt haben.
+        </div>
+</div>
+<!-- Question 3 -->
+<div class="question-box" data-correct="Fitness auch mit wenig Zeitaufwand erreichbar.">
+<div class="email-fields">
+<div class="email-subject drop-target empty-drop-target" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+</div>
+<div class="question-text">
+        Schweizer Forscher haben herausgefunden, dass nur 6 Minuten Hochleistungstraining pro Woche - also weniger als eine Minute pro Tag - ausreichen, um den Körper fit zu halten. In einem Versuch mit mehreren Probanden nahm eine Gruppe an einem traditionellen Ausdauertraining teil, mit je ein bis zwei Trainingsstunden täglich. Die zweite Gruppe führte täglich 60 Sekunden dauernde Radsprints durch, wobei die Teilnehmer quasi aus dem Stand Höchstgeschwindigkeit erzielen mussten. Das Resultat war überraschend: Beide Gruppen zeigten die gleichen gesundheitlichen Verbesserungen. Der Muskel nahmen gleich viel Sauerstoff auf, und auch die Werte des für die Sauerstoffaufnahme verantwortlichen Zitrat Enzyms waren gleich. Sehr kurze und hochintensive sportliche Übungen verbessern die Fitness genauso wie das zeitraubende traditionelle Ausdauertraining.
+        </div>
+</div>
+<!-- Question 4 -->
+<div class="question-box" data-correct="Sport ist gesund - wenn man einige wichtige Regeln beachtet.">
+<div class="email-fields">
+<div class="email-subject drop-target empty-drop-target" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+</div>
+<div class="question-text">
+        Mehr Bewegung als Ausgleich für zu langes Sitzen im Büro und in der Freizeit ist zurzeit angesagt, um Übergewicht, Bluthochdruck und Herz-Kreislauf-Erkrankungen vorzubeugen und um fit zu bleiben. Gerade für Einsteiger gibt es jedoch bei den die Ausdauer trainierenden Sportarten wie dem Joggen einige Grundregeln, die beachtet werden müssen, will man gesundheitliche Schäden vermeiden. Die ersten Trainingseinheiten sollen nicht länger als 20 bis 30 Minuten dauern und zweimal pro Woche durchgeführt werden. Der Puls sollte nie den Wert 200 minus Lebensalter überschreiten, bei einem 20-Jährigen kann er also bei 180, bei einem 60-Jährigen hingegen nur bei 140 liegen. Außerdem gilt für alle, die beim Sport abnehmen möchten: Je höher der Pulsschlag, desto weniger Fett wird verbrannt. Hoher Pulsschlag lässt Sporttreibenden langsamer abnehmen.
+        </div>
+</div>
+<!-- Question 5 -->
+<div class="question-box" data-correct="Geprüfte Qualität für Babys.">
+<div class="email-fields">
+<div class="email-subject drop-target empty-drop-target" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+</div>
+<div class="question-text">
+        Viele frischgebackene Eltern stehen einem riesigen Angebot an Kinderwagen gegenüber, das in Kinderläden und Großmärkten feilgeboten wird. Doch welcher ist der richtige? Experten raten, beim Kauf dieses für die ersten Jahre mit dem Kleinkind wichtigen Gefährts auf ein paar Dinge zu achten. Erstens sollte die Matratze nicht zu weich sein, damit das Kind nicht einsinkt, wodurch die Atmung behindert werden kann. Zweitens sollten die Räder gefedert sein, um Erschütterungen auf unebenen Wegen auszugleichen. Ein hoher Wagen schützt die Babys vor dem Auspuff der Autos an Straßenkreuzungen. Zusammenklappbare Wagen passen in jeden Kofferraum und lassen sich fast überallhin mitnehmen. Der Wagen sollte vor allem kippsicher sein und keine scharfen Kanten haben, an denen sich die Kinder verletzen können. Vom TÜV geprüfte Kinderwagen erhalten ein Prüfzeichen. Damit haben die Eltern eine gewisse Sicherheit, dass der Kinderwagen auch nach Dauergebrauch nicht zu einem Sicherheitsrisiko für ihr Kind werden kann.</div>
+</div>
+</div>
+</div>
+<div class="right-column">
+<div class="right-column-content" ondragover="allowDrop(event)" ondrop="drop(event)">
+<div class="draggable" draggable="true" id="a1" ondragstart="drag(event)">Sport ist gesund - wenn man einige wichtige Regeln beachtet.</div>
+<div class="draggable" draggable="true" id="a2" ondragstart="drag(event)">Griechische Sportler so erfolgreich wie nie zuvor.</div>
+<div class="draggable" draggable="true" id="a3" ondragstart="drag(event)">Fitness auch mit wenig Zeitaufwand erreichbar.</div>
+<div class="draggable" draggable="true" id="a4" ondragstart="drag(event)">Geprüfte Qualität für Babys.</div>
+<div class="draggable" draggable="true" id="a5" ondragstart="drag(event)">Bluthochdruck beschleunigt das Abnehmen.</div>
+<div class="draggable" draggable="true" id="a6" ondragstart="drag(event)">Sportbegeisterte Eltern - und auch die Babys sind beim Joggen dabei.</div>
+<div class="draggable" draggable="true" id="a7" ondragstart="drag(event)">Täglich kurze Sprints besser als langes Ausdauertraining.</div>
+<div class="draggable" draggable="true" id="a8" ondragstart="drag(event)">Ein Leistungssport für jedes Alter.</div>
+<div class="draggable" draggable="true" id="a9" ondragstart="drag(event)">Unüberschaubares Angebot an Kinderwagen überfordert junge Eltern.</div>
+<div class="draggable" draggable="true" id="a10" ondragstart="drag(event)">Autoindustrie: In Zukunft Mobilität ohne Grenzen.</div>
+</div>
+</div>
+</div>
+<div class="button-container">
+<button class="quiz-button" onclick="submitQuiz()">
+<i class="fas fa-paper-plane"></i> Abschicken
+  </button>
+<button class="quiz-button secondary" onclick="resetQuiz()">
+<i class="fas fa-redo"></i> Zurücksetzen
+  </button>
+<a class="quiz-button-link secondary" href="/index2"> <!-- Replace # with your actual home link -->
+<i class="fas fa-home"></i> Zurück zur Startseite
+  </a>
+</div>
+<div id="result"></div>
+<script>
+  const rightColumnContent = document.querySelector(".right-column .right-column-content");
+  const originalAnswerOrder = Array.from(rightColumnContent.querySelectorAll('.draggable'));
+  let selectedDraggable = null; // To store the currently click-selected draggable item
+
+  // --- CLICK-TO-DROP/PICKUP LOGIC ---
+  function selectItem(item) {
+    if (selectedDraggable) {
+      selectedDraggable.classList.remove('selected');
+    }
+    selectedDraggable = item;
+    if (selectedDraggable) {
+      selectedDraggable.classList.add('selected');
+    }
+  }
+
+  function deselectItem() {
+    if (selectedDraggable) {
+      selectedDraggable.classList.remove('selected');
+      selectedDraggable = null;
+    }
+  }
+
+  function handleDraggableClicked(event) {
+    const clickedItem = event.currentTarget;
+    event.stopPropagation(); // Prevent click bubbling to parent elements like answer pool
+
+    if (selectedDraggable === clickedItem) { // Clicking the already selected item
+      deselectItem();
+      // If it was in a target and now deselected by clicking it, move it back to pool
+      if (clickedItem.parentElement.classList.contains('drop-target')) {
+           const parentDropTarget = clickedItem.parentElement;
+           rightColumnContent.appendChild(clickedItem);
+           updateDropTargetVisualState(parentDropTarget);
+           parentDropTarget.classList.remove('correct', 'incorrect'); // Clear feedback
+      }
+    } else { // Clicking a new item, or an unselected item in a target
+      // If the clicked item is currently in a drop target, "pick it up" by moving to pool first
+      if (clickedItem.parentElement.classList.contains('drop-target')) {
+          const parentDropTarget = clickedItem.parentElement;
+          rightColumnContent.appendChild(clickedItem); // Move to pool
+          updateDropTargetVisualState(parentDropTarget);
+          parentDropTarget.classList.remove('correct', 'incorrect'); // Clear feedback
+      }
+      selectItem(clickedItem); // Then select it (it's now in the pool)
+    }
+  }
+
+  function handleDropTargetClicked(event) {
+    const clickedDropTarget = event.currentTarget;
+    event.stopPropagation();
+
+    if (selectedDraggable) { // If an item is selected, try to place it here
+      const existingItemInTarget = clickedDropTarget.querySelector('.draggable');
+      if (existingItemInTarget && existingItemInTarget !== selectedDraggable) {
+        rightColumnContent.appendChild(existingItemInTarget); // Move old item from target back to pool
+        // No need to deselect existingItemInTarget here, as it wasn't the 'selectedDraggable'
+      }
+
+      clickedDropTarget.innerHTML = ''; // Clear target (removes placeholder or old item)
+      clickedDropTarget.appendChild(selectedDraggable); // Place new item
+      updateDropTargetVisualState(clickedDropTarget);
+      clickedDropTarget.classList.remove('correct', 'incorrect'); // Clear any feedback
+      deselectItem(); // Item is placed, so deselect
+    } else if (!selectedDraggable && clickedDropTarget.querySelector('.draggable')) {
+      // No item is selected, AND the clicked drop target HAS an item: "pick up" that item.
+      const itemToPickUp = clickedDropTarget.querySelector('.draggable');
+      rightColumnContent.appendChild(itemToPickUp); // Move it to the pool
+      updateDropTargetVisualState(clickedDropTarget);
+      clickedDropTarget.classList.remove('correct', 'incorrect'); // Clear feedback
+      selectItem(itemToPickUp); // And select it (it's now in the pool)
+    }
+  }
+
+  function handleAnswerPoolClicked(event) {
+    // If click is on the pool itself (not a draggable within it) and an item is selected
+    if (event.target === rightColumnContent && selectedDraggable) {
+      // If selected item is somehow not in pool (e.g. if logic changes), ensure it is
+      if (selectedDraggable.parentElement !== rightColumnContent) {
+           rightColumnContent.appendChild(selectedDraggable);
+      }
+      // The main purpose here: clicking the pool with a selected item deselects it.
+      deselectItem();
+    }
+  }
+
+  function initializeClickInteractions() {
+    document.querySelectorAll('.draggable').forEach(item => {
+      item.addEventListener('click', handleDraggableClicked);
+    });
+    document.querySelectorAll('.drop-target').forEach(target => {
+      target.addEventListener('click', handleDropTargetClicked);
+    });
+    rightColumnContent.addEventListener('click', handleAnswerPoolClicked);
+  }
+
+  // --- DRAG AND DROP LOGIC (MODIFIED) ---
+  function allowDrop(ev) {
+    ev.preventDefault();
+    let potentialDropTarget = ev.target;
+    while(potentialDropTarget && !potentialDropTarget.classList.contains('drop-target') && !potentialDropTarget.classList.contains('right-column-content')) {
+        potentialDropTarget = potentialDropTarget.parentElement;
+    }
+    if (potentialDropTarget && potentialDropTarget.classList.contains('drop-target')) {
+        potentialDropTarget.classList.add("drag-over");
+    }
+  }
+
+  document.addEventListener('dragleave', function(event) {
+    if (event.target.classList && event.target.classList.contains("drop-target")) {
+      event.target.classList.remove("drag-over");
+    }
+  }, false);
+
+  function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+    ev.target.classList.add("dragging");
+    deselectItem(); // Deselect any click-selected item when a drag operation starts
+  }
+
+  document.addEventListener('dragend', function(event) {
+    if (event.target.classList && event.target.classList.contains('draggable')) {
+      event.target.classList.remove('dragging');
+    }
+    document.querySelectorAll('.drop-target.drag-over').forEach(dt => dt.classList.remove('drag-over'));
+  });
+
+  function drop(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    let dropTargetEl = ev.target;
+
+    if (!draggedEl) return; // Safety check
+
+    draggedEl.classList.remove("dragging");
+    document.querySelectorAll('.drop-target.drag-over').forEach(dt => dt.classList.remove('drag-over'));
+
+    while (dropTargetEl &&
+           !dropTargetEl.classList.contains("drop-target") &&
+           !dropTargetEl.classList.contains("right-column-content")) {
+      dropTargetEl = dropTargetEl.parentElement;
+    }
+
+    if (!dropTargetEl) return;
+
+    if (dropTargetEl.classList.contains("drop-target")) {
+      const currentAnswer = dropTargetEl.querySelector(".draggable");
+      if (currentAnswer && currentAnswer !== draggedEl) {
+        rightColumnContent.appendChild(currentAnswer);
+        currentAnswer.classList.remove('selected'); // Ensure item moved back is not selected
+      }
+      dropTargetEl.innerHTML = "";
+      dropTargetEl.appendChild(draggedEl);
+      dropTargetEl.classList.remove("correct", "incorrect");
+      updateDropTargetVisualState(dropTargetEl);
+    }
+    else if (dropTargetEl.classList.contains("right-column-content")) {
+      const originalParent = draggedEl.parentElement; // Get parent BEFORE moving
+      rightColumnContent.appendChild(draggedEl);
+      if (originalParent && originalParent.classList.contains('drop-target')) {
+          updateDropTargetVisualState(originalParent); // Update visual state of original drop target
+          originalParent.classList.remove('correct', 'incorrect');
+      }
+    }
+    deselectItem(); // Deselect any click-selected item after a drop operation
+  }
+
+  function updateDropTargetVisualState(dropTarget) {
+    if (!dropTarget || !dropTarget.classList.contains('drop-target')) return;
+    if (dropTarget.querySelector(".draggable")) {
+      dropTarget.classList.remove("empty-drop-target");
+    } else {
+      dropTarget.classList.add("empty-drop-target");
+    }
+  }
+
+  // --- QUIZ FUNCTIONALITY (MODIFIED RESET) ---
+  function submitQuiz() {
+    let total = 0;
+    let correct = 0;
+    deselectItem(); // Ensure nothing is selected when submitting
+
+    document.querySelectorAll('.question-box').forEach((box) => {
+      total++;
+      const correctAnswer = box.getAttribute("data-correct").trim();
+      const dropTarget = box.querySelector(".drop-target");
+      const droppedDraggable = dropTarget.querySelector(".draggable");
+      dropTarget.classList.remove("correct", "incorrect");
+      if (droppedDraggable) {
+        const selectedText = droppedDraggable.textContent.trim();
+        if (selectedText === correctAnswer) {
+          dropTarget.classList.add("correct");
+          correct++;
+        } else {
+          dropTarget.classList.add("incorrect");
+        }
+      } else {
+        dropTarget.classList.add("incorrect");
+      }
+    });
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML =
+      `Du hast <span class="correct-count">${correct}</span> von <span class="total-count">${total}</span> Fragen richtig beantwortet.`;
+  }
+
+  function resetQuiz() {
+    deselectItem(); // Clear any click-selection first
+
+    document.querySelectorAll('.drop-target').forEach(dt => {
+        const draggable = dt.querySelector('.draggable');
+        if (draggable) {
+            rightColumnContent.appendChild(draggable);
+            draggable.classList.remove('selected'); // Make sure it's not selected style
+        }
+        dt.innerHTML = '';
+        dt.classList.remove('correct', 'incorrect');
+        updateDropTargetVisualState(dt);
+    });
+
+    rightColumnContent.innerHTML = '';
+    originalAnswerOrder.forEach(draggable => {
+        rightColumnContent.appendChild(draggable);
+        draggable.classList.remove('dragging'); // Just in case
+        draggable.classList.remove('selected'); // Ensure no selected style
+    });
+
+    document.getElementById("result").innerHTML = "";
+    document.querySelectorAll('.drop-target').forEach(updateDropTargetVisualState);
+  }
+
+  // --- INITIALIZATION ---
+  document.querySelectorAll('.drop-target').forEach(updateDropTargetVisualState);
+  initializeClickInteractions(); // Add this line to set up click listeners
+
+</script>
+<script>
+let pingTimeout;
+let logoutTimer;
+let warningTimer;
+let countdownTimer;
+let lastPing = 0;
+
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+const WARNING_BEFORE_LOGOUT = 30 * 1000; // 30 seconds
+const warningBox = document.getElementById("warningBox");
+const countdownEl = document.getElementById("countdown");
+
+function sendPing() {
+    const now = Date.now();
+    if (now - lastPing < 10000) return; 
+    lastPing = now;
+    fetch("/ping").catch(() => {});
+}
+
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    clearInterval(countdownTimer);
+
+    warningBox.style.display = "none"; // 🟡 hide warning if active again
+
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Show warning 30s before logout
+    warningTimer = setTimeout(() => {
+        let remaining = 30;
+        warningBox.style.display = "block";
+        countdownEl.textContent = remaining;
+
+        countdownTimer = setInterval(() => {
+            remaining--;
+            countdownEl.textContent = remaining;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+            }
+        }, 1000);
+    }, INACTIVITY_LIMIT - WARNING_BEFORE_LOGOUT);
+
+    // Auto logout
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/");
+    }, INACTIVITY_LIMIT);
+}
+
+// Events
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+window.addEventListener("pageshow", sendPing);
+window.addEventListener("beforeunload", sendPing);
+
+resetTimers();
+</script>
+</body></html>

@@ -1,0 +1,823 @@
+<html lang="de"><head>
+<meta charset="utf-8"/>
+<title>Lesen Teil 3</title>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<!-- Font Awesome for Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+    :root {
+      --primary-color: #3498db; /* A slightly more vibrant blue */
+      --secondary-color: #2ecc71; /* Green for success */
+      --danger-color: #e74c3c; /* Red for error */
+      --light-bg: #ecf0f1;
+      --dark-text: #2c3e50;
+      --light-text: #ffffff;
+      --border-radius: 10px;
+      --box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      --box-shadow-hover: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: var(--dark-text);
+      animation: fadeInPage 0.8s ease-out;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: translateY(-15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      padding: 20px 25px;
+      margin-bottom: 25px;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-size: 26px;
+      font-weight: 600;
+      box-shadow: var(--box-shadow);
+      letter-spacing: 0.5px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @media(min-width: 768px) {
+      .container {
+        flex-direction: row;
+      }
+    }
+
+    .left-column, .right-column {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .quiz-scroll-container, .right-column-content {
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: var(--box-shadow);
+      max-height: 60vh; /* Adjusted for better viewport fit */
+      overflow-y: auto;
+      /* Custom scrollbar styling */
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) var(--light-bg);
+    }
+
+    /* Style for .right-column-content when being dragged over */
+    .right-column-content.drag-over {
+        background-color: #eef8ff; /* Same as .drop-target.drag-over */
+        border: 2px dashed var(--primary-color); /* Add a border to indicate it's a drop zone */
+    }
+
+
+    .quiz-scroll-container::-webkit-scrollbar,
+    .right-column-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    .quiz-scroll-container::-webkit-scrollbar-track,
+    .right-column-content::-webkit-scrollbar-track {
+      background: var(--light-bg);
+      border-radius: var(--border-radius);
+    }
+    .quiz-scroll-container::-webkit-scrollbar-thumb,
+    .right-column-content::-webkit-scrollbar-thumb {
+      background-color: var(--primary-color);
+      border-radius: var(--border-radius);
+      border: 2px solid var(--light-bg);
+    }
+
+
+    .question-box {
+      border: 1px solid #bdc3c7;
+      border-left: 5px solid var(--primary-color);
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #fdfdfd; /* Slightly off-white */
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .question-box:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .question-text {
+      font-size: 0.9em;
+      color: #7f8c8d;
+      margin-top: 10px;
+    }
+
+    .drop-target {
+      background-color: #f9f9f9;
+      padding: 12px;
+      margin-bottom: 10px; /* Space between drop target and question text */
+      border: 2px dashed #cccccc;
+      min-height: 45px;
+      border-radius: 8px;
+      text-align: center;
+      transition: background-color 0.3s, border-color 0.3s;
+      display: flex; /* To center placeholder and dropped item */
+      align-items: center;
+      justify-content: center;
+      position: relative; /* For feedback icons */
+    }
+    .drop-target.empty-drop-target::before {
+      content: "Hier Antwort ablegen";
+      color: #aaa;
+      font-style: italic;
+      font-size: 0.9em;
+    }
+    .drop-target:not(.empty-drop-target)::before {
+      content: ""; /* Clear placeholder when not empty */
+    }
+
+    .drop-target:hover, .drop-target.drag-over {
+      background-color: #eef8ff;
+      border-color: var(--primary-color);
+    }
+
+    .draggable {
+      background-color: #e0e0e0;
+      color: var(--dark-text);
+      margin: 10px 0;
+      padding: 12px 15px;
+      border-radius: 8px;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+      font-size: 0.95em;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .draggable:hover {
+      background-color: #d0d0d0;
+      transform: translateX(3px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .draggable.selected {
+      outline: 2px solid var(--primary-color);
+      box-shadow: 0 0 0 3px var(--primary-color_alpha, rgba(52, 152, 219, 0.3));
+      background-color: #cce7ff;
+    }
+    .draggable.dragging {
+      opacity: 0.6;
+      transform: scale(0.95);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      cursor: grabbing;
+    }
+
+    /* Feedback styling for drop targets */
+    .drop-target.correct {
+      background-color: #e8f5e9; /* Light green */
+      border: 2px solid var(--secondary-color) !important;
+    }
+    .drop-target.correct::after {
+      content: "\f00c"; /* Font Awesome check icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--secondary-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+
+    .drop-target.incorrect {
+      background-color: #ffebee; /* Light red */
+      border: 2px solid var(--danger-color) !important;
+    }
+    .drop-target.incorrect::after {
+      content: "\f00d"; /* Font Awesome times icon */
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: var(--danger-color);
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2em;
+    }
+    /* Ensure dropped draggable text is visible over feedback */
+    .drop-target .draggable {
+      background-color: var(--primary-color);
+      color: var(--light-text);
+      width: calc(100% - 30px); /* Adjust width to make space for icon */
+      padding-right: 35px; /* Space for the potential icon */
+      box-sizing: border-box;
+    }
+    .drop-target.correct .draggable { background-color: var(--secondary-color); }
+    .drop-target.incorrect .draggable { background-color: var(--danger-color); }
+
+
+    .wrong-flag {
+      margin-right: 10px;
+      accent-color: var(--danger-color);
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    .button-container {
+      margin-top: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .quiz-button {
+      padding: 12px 25px;
+      border: none;
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--box-shadow);
+    }
+    .quiz-button:hover {
+      background-color: #2980b9; /* Darker shade of primary */
+      transform: translateY(-2px);
+      box-shadow: var(--box-shadow-hover);
+    }
+    .quiz-button:active {
+      transform: translateY(0px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .quiz-button.secondary {
+      background-color: #7f8c8d; /* A neutral secondary color */
+    }
+    .quiz-button.secondary:hover {
+      background-color: #6c7a89;
+    }
+
+    #result {
+      text-align: center;
+      margin-top: 25px;
+      padding: 15px;
+      font-size: 1.1em;
+      font-weight: 500;
+      background-color: var(--light-text);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    #result .correct-count { color: var(--secondary-color); }
+    #result .total-count { color: var(--primary-color); }
+    #result .marked-wrong-count { color: var(--danger-color); }
+
+    #warningBox {
+  display: none;
+  position: fixed;
+  top: 20px;                  
+  left: 50%;                  
+  transform: translateX(-50%);
+  background: #f81d1d;
+  color: #ffffff;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 9999;
+}
+
+  </style>
+</head>
+<body>
+<div class="header">Lesen Teil 3: Musikinstrumente </div>
+<div class="container">
+<div class="left-column">
+<div class="quiz-scroll-container">
+<!-- Questions A-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Didgeridoo - der klingende Stock Australiens</h4>
+<p>(Samstag 9.30 - 19.30 Uhr)</p>
+            Erlernt werden die Herstellung und das Spiel auf diesem wahrscheinlich ältesten Blasinstrument der Welt. Von den Aborigines - den Ureinwohnern Australiens - zur Begleitung von Tanz und Gesang und bei Heilungsritualen verwendet, wird es heute als Musikinstrument in der Therapie sowie in Musikgruppen und Orchestern auf der ganzen Welt eingesetzt. Die heilende Wirkung des Didgeridoo-Spiels beruht darauf, dass durch die besondere Klangcharakteristik und die Zirkulär Atmung, die es ermöglicht, den Ton beliebig lange ohne Unterbrechung zu halten, der Zugang zu einer gesteigerten Wahrnehmung erleichtert wird und man so einen Zustand tiefer Entspannung erreicht.
+        </div>
+</div>
+<!-- Questions B-->
+<div class="question-box" data-correct="An Ihrem Arbeitsplatz müssen Sie viele deutsche Geschäftsbriefe schreiben, sind aber oft unsicher und suchen einen entsprechenden Kurs.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Deutsch im Beruf</h4>
+<p>(Samstag 9:00 - 17.30 Uhr)</p>
+            Wie schreibt man heute richtig? Welche Regeln sind beim Telefonieren zu beachten? Worauf muss ich beim Schreiben von E-Mails achten? Wie gestalte ich Briefe am besten? Und wo hole ich mir Hilfe, wenn ich mir nicht sicher bin? Der Tageskurs soll kurz und bündig das Wichtigste bieten, worauf man aufpassen muss. Damit lassen sich sicher 80-90% der häufigsten Fehler vermeiden, was den Eindruck ihrer Firma nach außen wesentlich verbessert. Ihr Chef wird bemerken, dass sie hinzugelernt haben.
+        </div>
+</div>
+<!-- Questions C-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Xpert - Europäischer Computerpass</h4>
+            (Dienstag, 18.15-21-15 Uhr, Dauer: 10 Wochen)
+            <p>In diesem Semester bitte die FAFA zum Einstieg in das Lehrgangssystem von Xpert das neue Pflichtmodul Win@internet 1 an. Im nächsten Halbjahr werden dann das Pflichtmodul Textverarbeitung Basics und das Wahlmodul Präsentation folgen. Wenn sie sich prüfen lassen:</p>
+<p>• wissen Sie, woraus ein einfaches Computersystem besteht,</p>
+<p>• können Sie Windows bedienen und Ordner verwalten,</p>
+<p>• haben sie die Fähigkeit, die wichtigsten Internetdienste und E-Mail-Dienste anzuwenden und haben</p>
+            Einblick in die Gefahren, die sich aus der Nutzung ergeben.
+
+        </div>
+</div>
+<!-- Questions D-->
+<div class="question-box" data-correct="Ihr Freund ist Vorsitzender eines Golfclubs und muss immer wieder Informationen an die Medien geben. Er möchte diese Aufgabe professionell erledigen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Grundlagen der Pressearbeit für Vereine</h4>
+<p>(Samstag, 10.00 - 12.00 Uhr)</p>
+            Nach welchen Kriterien haben Themen eine Chance, in die Medien zu gelangen? In diesem Seminar lernen Sie Grundlagen effektiver Pressearbeit kennen. Es wird aber nicht nur theoretisches Wissen vermittelt. Sie haben Gelegenheit zu praktischen Übungen und können lernen, eine aktuelle Pressemitteilung für Ihren Verein zu formulieren. Das Angebot richtet sich vor allem an Aktive in Vereinen und Initiativen, die neu in die Pressearbeit einsteigen wollen. Den Teilnehmenden wird ein zusätzliches späteres Treffen angeboten, um die Erfahrungen aus der ersten Anwendung der im Seminar erworbenen Kenntnisse auszutauschen.
+        </div>
+</div>
+<!-- Questions E-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Glücklich miteinander - wie Partnerschaft gelingt</h4>
+<p>(Dienstag, 19.30 - 21.00 Uhr)</p>
+            Am Anfang der Partnerschaft sind wir verliebt und glücklich. Sehr bald allerdings gerät die Liebe in Gefahr - sowohl durch die Belastungen des Alltags als auch durch die beiderseitigen Fehler. Der Vortrag zeigt, worauf es in einer guten Partnerschaft ankommt, und stellt dazu die neuesten Forschungsergebnisse aus der Paarforschung vor. Außerdem berichtet die Referentin aus ihrer Praxis als Paar- und Familientherapeutin und gibt Hinweise, was die Partner selbst aktiv für ihre Liebe tun können. Die Veranstaltung findet in Kooperation mit dem Psychologischen Institut der Universität statt.
+        </div>
+</div>
+<!-- Questions F-->
+<div class="question-box" data-correct="Ihre Freundin zögert häufig, sich auf eine Sache festzulegen. Hat sie schließlich einen Entschluss gefasst, bereut sie diesen bisweilen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Entscheidungen leichter fällen</h4>
+<p>(Samstag, 10.00 - 13.00 Uhr)</p>
+            “Diese oder jene Wohnung nehmen und nach welchen Kriterien entscheiden?”, “Trotz schlechter Arbeitsmarktlage den Job wechseln oder lieber auf Nummer sicher gehen?”. Oder einfach nur: “Was soll ich heute kochen?”. Entscheidungen müssen wir täglich treffen - einige fallen uns leichter, andere schwerer. Nicht selten ist man aber hinterher mit der Entscheidung unzufrieden und fragt sich, ob man nicht alles hätte anders machen sollen. Das muss nicht sein. Eine optimale Entscheidung zu treffen, lässt sich lernen. Unterschiedliche Techniken werden vorgestellt, gezielt geübt und man lernt, diese auf die individuelle Situation anzuwenden, so dass man in Zukunft jede Entscheidung leichter fällen kann.         
+        </div>
+</div>
+<!-- Questions G-->
+<div class="question-box" data-correct="Sie suchen eine Berufsausbildung, bei der Sie viel mit Menschen zu tun haben. Und Sie interessieren sich für alles, was mit Gesundheit zu tun hat.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Physiotherapie</h4>
+<p>(Beginn: 1. September, 9.00 Uhr, Dauer: 4 Semester)</p>
+            Physiotherapie ist ein wichtiger Bestandteil der modernen Medizin. Die Physiotherapeutin, der Physiotherapeut kann mit vielen Behandlungskonzepten und Techniken zum Erhalt oder zur Wiederbereitstellung aller Funktionen der Patienten beitragen. Die Ausbildung endet mit einer staatlichen Prüfung. Nach bestandener Prüfung wird gemäß § 2 des “Gesetzes über die Berufe in der Physiotherapie” die Erlaubnis zur Führung der Berufsbezeichnung “Physiotherapeut/in” von den zuständigen Behörden erteilt. Um an der Ausbildung teilnehmen zu können, müssen Sie mindestens einen Realschulabschluss haben. Außerdem müssen Sie einen Eingangstest bei uns machen.
+        </div>
+</div>
+<!-- Questions H-->
+<div class="question-box" data-correct="__NO_CORRECT_ANSWER__">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Außenwirtschaft- und länderkundliche Beraterin:</h4>
+<p>(täglich, 8.00 - 12.10 Uhr, Dauer: 10 Monate)</p>
+            Ziel ist es, an einer Tätigkeit im kaufmännischen Bereich interessierte Frauen mit Migrationshintergrund und zumindest guten Grundkenntnissen der deutschen Sprache auf eine Tätigkeit im Import/Exportbereich vorzubereiten und in eine feste Anstellung zu vermitteln. Durch die Aneignung der dafür erforderlichen sprachlichen und fachlichen Kompetenzen ist es möglich, den Migrantinnen.
+            <p>• einen beruflichen Einstieg in den Bereich Außenwirtschaft.</p>
+<p>• eine Anknüpfung an eine bereits im Herkunftsland ausgeübte oder erlernte Tätigkeit.</p>
+<p>• eine anschließende Regelausbildung im Außenhandel oder Import-Export-Bereich.</p>
+<p>• eine Existenzgründung im Consultingbereich (als länderkundliche Beraterin) zu ermöglichen.</p>
+</div>
+</div>
+<!-- Questions I-->
+<div class="question-box" data-correct="Sie beginnen gerade mit Ihrem Studium, beherrschen die wissenschaftlichen Arbeitstechniken noch nicht.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Referate und Hausarbeiten erfolgreich meistern</h4>
+<p>(Mittwoch und Freitag, 18.30 - 21.00 Uhr, Dauer: 10 Wochen)</p>
+            Wie kann ich mich optimal an Lehrveranstaltungen beteiligen? Wie halte ich mündliche Referate? Was erwartet mich in einer mündlichen Prüfung? Wie soll eine E-Mail an Dozentinnen und Dozenten aussehen? Wie fertige ich Mitschriften und Exzerpte an? Wie schreibe ich eine Hausarbeit, wie zitiere ich? Wie schreibe ich schriftliche Klausuren? 
+            <p>- Besonders in den ersten Semestern haben Anfänger ihre liebe Not mit den universitären Textsorten und Aufgabenstellungen. Mit den Schwerpunkten Referat und Hausarbeit bietet der Kurs Übungen, um Routine für schriftliche und mündliche Leistungsnachweise zu entwickeln. Das Lehrmaterial wird zu Kursbeginn bekannt gegeben. Kopierkosten werden mit dem Dozenten abgerechnet.</p>
+</div>
+</div>
+<!-- Questions J-->
+<div class="question-box" data-correct="Sie haben sich auf eine Arbeitsstelle beworben und wollen sich gut vorbereiten, falls man Sie persönlich kennen lernen möchte.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Souverän in Vorstellungsgesprächen</h4>
+<p> (Freitag-Sonntag, 10.30 - 17.00 Uhr)</p>
+            Im Vorstellungsgespräch müssen Sie Ihren zukünftigen Arbeitgeber von Ihren Fähigkeiten und Ihrer Persönlichkeit überzeugen. Dieses Seminar vermittelt Ihnen, was im Vorstellungsgespräch von Ihnen erwartet wird, was Sie sagen oder nicht sagen sollten und wie Sie Ihr Profil darstellen. Mithilfe von Rollenspielen und Videoaufzeichnungen sehen Sie ein Bild von sich selbst. Sofort-Tipps und Feedback unterstützen eine Verhaltensänderung, die den Erfolg Ihres Vorstellungsgespräches unterstützt. Nachdem Sie viel geübt haben, werden Sie in Zukunft ohne Bauchschmerzen zum Vorstellungsgespräch gehen können.
+        </div>
+</div>
+<!-- Questions K-->
+<div class="question-box" data-correct="Eine Bekannte wird zur Erzieherin ausgebildet. Sie sucht einen Kurs, indem sie die Fähigkeit zu bildlicher Darstellung entwickeln kann.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Zeichnen für Anfänger</h4>
+<p>(Samstag und Sonntag, 10.30 - 17.00 Uhr)</p>
+            Sind Sie auch der Meinung, dass Sie nicht zeichnen können? Dann sind Sie in diesem Kurs genau richtig! An verschiedenen Alltagsgegenständen schulen wir unsere Wahrnehmung und lernen, Proportionen, Licht und Schatten richtig zu erfassen und zeichnerisch wiederzugeben. Ihnen schwirrt der Kopf, wenn Sie Begriffe wie Horizontlinie oder Fluchtpunkt hören und leichte Verzweiflung erfasst Sie? Was es damit auf sich hat, erfahren Sie in zeichnerischen Übungen und lernen eckige Gegenstände, Innenräume und Hausansichten perspektivisch richtig darzustellen. Wir arbeiten mit Bleistift. Bitte mitbringen: Bleistifte HB, 2B, 4B, 6B, 8B, Radiergummi, Spitzer und Zeichenblock DIN A3.
+        </div>
+</div>
+<!-- Questions L-->
+<div class="question-box" data-correct="Sie wollen Rezepte aus der fernöstlichen Küche kennen lernen.">
+<div class="drop-target empty-drop-target" onclick="clickDrop(this)" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+<div class="question-text">
+<h4>Traditionelle thailändische Speisen </h4>
+<p>(Samstag und Sonntag, 10.30 - 17.00 Uhr)</p>
+            Thailändische Gerichte sind dafür berühmt, viel Geschmack, gleichzeitig jedoch weniger Kalorien zu liefern. Die thailändische Küche bietet genussvolle und köstliche Speisen. Vorspeisen, Hauptgerichte und die berühmten Suppen und Salate werden gemeinsam zubereitet. Der Kurs soll ein Einstieg in die Feinheiten der thailändischen Küche sein.
+            An jedem Kursabend wird ein vielseitiges und köstliches Menü zusammengestellt und anschließend gemeinsam gegessen. Angerichtet wird der Kurs durch landestypische Dekorationsideen. Bitte bringen Sie zwei Geschirrtücher, Vorratsdosen für Reste und Ihr eigenes Getränk mit. Die Lebensmittelkosten in Höhe von ca. 8 EUR pro Abend werden direkt mit den Dozenten abgerechnet.
+          </div>
+</div>
+</div>
+</div>
+<div class="right-column">
+<!-- MODIFIED: Added ondragover and ondrop to make this a droppable area -->
+<div class="right-column-content" onclick="clearSelected()" ondragover="allowDrop(event)" ondrop="dropOnAnswersContainer(event)">
+<!-- Answers -->
+<div class="draggable" draggable="true" id="a1" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ein Freund interessiert sich für Musikinstrumente des europäischen Mittelalters.
+      </div>
+<div class="draggable" draggable="true" id="a2" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> An Ihrem Arbeitsplatz müssen Sie viele deutsche Geschäftsbriefe schreiben, sind aber oft unsicher und suchen einen entsprechenden Kurs. 
+      </div>
+<div class="draggable" draggable="true" id="a3" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihr Freund ist Vorsitzender eines Golfclubs und muss immer wieder Informationen an die Medien geben. Er möchte diese Aufgabe professionell erledigen.
+      </div>
+<div class="draggable" draggable="true" id="a4" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Eine Bekannte wird zur Erzieherin ausgebildet. Sie sucht einen Kurs, indem sie die Fähigkeit zu bildlicher Darstellung entwickeln kann. 
+      </div>
+<div class="draggable" draggable="true" id="a5" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie suchen eine Berufsausbildung, bei der Sie viel mit Menschen zu tun haben. Und Sie interessieren sich für alles, was mit Gesundheit zu tun hat.
+      </div>
+<div class="draggable" draggable="true" id="a6" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Ihre Freundin zögert häufig, sich auf eine Sache festzulegen. Hat sie schließlich einen Entschluss gefasst, bereut sie diesen bisweilen.
+      </div>
+<div class="draggable" draggable="true" id="a7" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie wollen Rezepte aus der fernöstlichen Küche kennen lernen. 
+      </div>
+<div class="draggable" draggable="true" id="a8" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie beginnen gerade mit Ihrem Studium, beherrschen die wissenschaftlichen Arbeitstechniken noch nicht.
+      </div>
+<div class="draggable" draggable="true" id="a9" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie sollen in Kürze eine PowerPoint-Präsentation machen und suchen einen geeigneten Kurs. 
+      </div>
+<div class="draggable" draggable="true" id="a10" onclick="selectAnswer(this, event)" ondragstart="drag(event)">
+<input class="wrong-flag" onclick="event.stopPropagation()" type="checkbox"/> Sie haben sich auf eine Arbeitsstelle beworben und wollen sich gut vorbereiten, falls man Sie persönlich kennen lernen möchte.
+      </div>
+</div>
+</div>
+</div>
+<div class="button-container">
+<button class="quiz-button" id="submitQuizButton">
+<i class="fas fa-paper-plane"></i> Abschicken
+    </button>
+<button class="quiz-button secondary" id="resetQuizButton">
+<i class="fas fa-redo"></i> Zurücksetzen
+    </button>
+<!-- Changed to <a> tag for navigation, href to a generic "index.html" or "#" -->
+<a class="quiz-button secondary" href="/index2" id="homeButton" role="button">
+<i class="fas fa-home"></i> Startseite
+    </a>
+</div>
+<div id="result"></div>
+<script>
+  let selectedAnswer = null;
+  const rightColumnContent = document.querySelector(".right-column-content");
+  const originalAnswerOrder = Array.from(rightColumnContent.querySelectorAll('.draggable')); // Store initial order for reset
+
+  // MODIFIED: allowDrop to correctly identify parent droppable container
+  function allowDrop(ev) {
+    ev.preventDefault();
+    let droppableContainer = ev.target;
+    // Traverse up to find the actual droppable container (.drop-target or .right-column-content)
+    while (droppableContainer && droppableContainer !== document.body &&
+           !droppableContainer.classList.contains("drop-target") &&
+           !droppableContainer.classList.contains("right-column-content")) {
+        droppableContainer = droppableContainer.parentElement;
+    }
+
+    if (droppableContainer && (droppableContainer.classList.contains("drop-target") || droppableContainer.classList.contains("right-column-content"))) {
+        droppableContainer.classList.add("drag-over");
+    }
+  }
+
+  function drag(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+    ev.target.classList.add("dragging");
+  }
+
+  document.addEventListener('dragleave', function(event) {
+    if (event.target.classList && (event.target.classList.contains("drop-target") || event.target.classList.contains("right-column-content"))) {
+        if (!event.target.contains(event.relatedTarget) && event.target !== event.relatedTarget) {
+             event.target.classList.remove("drag-over");
+        } else if (event.relatedTarget === null) { 
+            event.target.classList.remove("drag-over");
+        }
+    }
+  }, false);
+  
+  document.addEventListener('dragend', function(event) {
+    if (event.target.classList && event.target.classList.contains('draggable')) {
+      event.target.classList.remove('dragging');
+    }
+    document.querySelectorAll('.drop-target.drag-over, .right-column-content.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+  });
+
+  // MODIFIED: drop function for question slots
+  function drop(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    let dropTarget = ev.target;
+
+    while (dropTarget && !dropTarget.classList.contains("drop-target")) {
+        dropTarget = dropTarget.parentElement;
+    }
+    
+    if (!dropTarget || !draggedEl) return;
+
+    dropTarget.classList.remove("drag-over");
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; 
+
+    const currentAnswerInTarget = dropTarget.querySelector(".draggable");
+    if (currentAnswerInTarget && currentAnswerInTarget !== draggedEl) {
+      rightColumnContent.appendChild(currentAnswerInTarget);
+      showCheckbox(currentAnswerInTarget);
+    }
+    
+    dropTarget.innerHTML = ""; 
+    dropTarget.appendChild(draggedEl);
+    hideCheckbox(draggedEl);
+    updateDropTargetState(dropTarget);
+
+    if (originalParentOfDraggedEl &&
+        originalParentOfDraggedEl.classList.contains("drop-target") &&
+        originalParentOfDraggedEl !== dropTarget) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+  // NEW: Function to handle drops onto the answers container
+  function dropOnAnswersContainer(ev) {
+    ev.preventDefault();
+    const draggedId = ev.dataTransfer.getData("text");
+    const draggedEl = document.getElementById(draggedId);
+    const answersContainer = ev.currentTarget; 
+
+    if (!draggedEl || !answersContainer) return;
+
+    answersContainer.classList.remove("drag-over");
+
+    const originalParentOfDraggedEl = draggedEl.parentElement; 
+
+    answersContainer.appendChild(draggedEl);
+    showCheckbox(draggedEl);
+
+    if (originalParentOfDraggedEl && originalParentOfDraggedEl.classList.contains("drop-target")) {
+        updateDropTargetState(originalParentOfDraggedEl);
+    }
+
+    if (selectedAnswer === draggedEl) {
+        draggedEl.classList.remove("selected");
+        selectedAnswer = null;
+    }
+  }
+
+
+  function hideCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "none";
+  }
+
+  function showCheckbox(el) {
+    const checkbox = el.querySelector(".wrong-flag");
+    if (checkbox) checkbox.style.display = "inline-block";
+  }
+
+  function selectAnswer(el, event) {
+    event.stopPropagation(); 
+    if (selectedAnswer === el) { 
+      el.classList.remove("selected");
+      selectedAnswer = null;
+    } else {
+      if (selectedAnswer) selectedAnswer.classList.remove("selected");
+      selectedAnswer = el;
+      el.classList.add("selected");
+    }
+  }
+
+  // MODIFIED: clickDrop function
+  function clickDrop(targetDropzone) {
+    if (selectedAnswer) {
+      const originalParentOfSelectedAnswer = selectedAnswer.parentElement;
+
+      const currentAnswerInDropzone = targetDropzone.querySelector(".draggable");
+      if (currentAnswerInDropzone && currentAnswerInDropzone !== selectedAnswer) {
+        rightColumnContent.appendChild(currentAnswerInDropzone);
+        showCheckbox(currentAnswerInDropzone);
+      }
+      
+      targetDropzone.innerHTML = ""; 
+      targetDropzone.appendChild(selectedAnswer);
+      hideCheckbox(selectedAnswer);
+      updateDropTargetState(targetDropzone);
+
+      if (originalParentOfSelectedAnswer &&
+          originalParentOfSelectedAnswer.classList.contains("drop-target") &&
+          originalParentOfSelectedAnswer !== targetDropzone) {
+          updateDropTargetState(originalParentOfSelectedAnswer);
+      }
+
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function clearSelected() {
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove("selected");
+      selectedAnswer = null;
+    }
+  }
+
+  function updateDropTargetState(dropTarget) {
+    if (!dropTarget || !dropTarget.classList.contains('drop-target')) return;
+    
+    if (dropTarget.querySelector(".draggable")) {
+      dropTarget.classList.remove("empty-drop-target");
+    } else {
+      dropTarget.classList.add("empty-drop-target");
+    }
+  }
+
+  function getDraggableText(draggableElement) {
+    const clone = draggableElement.cloneNode(true);
+    const checkbox = clone.querySelector('.wrong-flag');
+    if (checkbox) {
+        checkbox.remove();
+    }
+    return clone.textContent.trim();
+  }
+
+  function submitQuiz() {
+    let total = 0, correct = 0;
+    document.querySelectorAll('.question-box').forEach((box) => {
+      total++;
+      const correctAnswerText = box.getAttribute("data-correct").trim();
+      const dropTarget = box.querySelector(".drop-target");
+      const droppedDraggable = dropTarget.querySelector(".draggable");
+      
+      dropTarget.classList.remove("correct", "incorrect"); 
+
+      if (droppedDraggable) { 
+        const selectedText = getDraggableText(droppedDraggable); 
+        if (correctAnswerText === "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        } else {
+          if (selectedText === correctAnswerText) {
+            dropTarget.classList.add("correct");
+            correct++;
+          } else {
+            dropTarget.classList.add("incorrect");
+          }
+        }
+      } else { 
+        if (correctAnswerText !== "__NO_CORRECT_ANSWER__") {
+          dropTarget.classList.add("incorrect");
+        }
+      }
+      updateDropTargetState(dropTarget); 
+    });
+
+    let wrongMarkedCorrect = 0, wrongMarkedTotal = 0;
+    rightColumnContent.querySelectorAll('.draggable').forEach((answerEl) => {
+      const text = getDraggableText(answerEl); 
+      const checkbox = answerEl.querySelector('.wrong-flag');
+      
+      const isACorrectAnswerOptionForAnyQuestion = Array.from(document.querySelectorAll('.question-box'))
+        .some(box => {
+            const qCorrectText = box.getAttribute('data-correct').trim();
+            return qCorrectText !== "__NO_CORRECT_ANSWER__" && qCorrectText === text;
+        });
+      
+      if (!isACorrectAnswerOptionForAnyQuestion) { 
+        wrongMarkedTotal++; 
+        if (checkbox.checked) {
+          wrongMarkedCorrect++; 
+        }
+      }
+    });
+
+    const questionsWithNoAnswer = Array.from(document.querySelectorAll('.question-box'))
+                                      .filter(box => box.getAttribute('data-correct').trim() === "__NO_CORRECT_ANSWER__").length;
+    const scorableTotal = total - questionsWithNoAnswer;
+
+
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML =
+      `<span class="correct-count">✅ ${correct}</span> von <span class="total-count">${scorableTotal}</span> bewertbaren Fragen richtig. | ` + 
+      `<span class="marked-wrong-count">🚫 Falsch-Antworten korrekt markiert: ${wrongMarkedCorrect}</span> von ${wrongMarkedTotal}.`;
+  }
+
+  function resetQuiz() {
+    document.querySelectorAll('.drop-target').forEach(dt => {
+        const draggable = dt.querySelector('.draggable');
+        if (draggable) {
+            rightColumnContent.appendChild(draggable); 
+            showCheckbox(draggable); 
+        }
+        dt.innerHTML = ''; 
+        dt.classList.remove('correct', 'incorrect'); 
+        updateDropTargetState(dt); 
+    });
+
+    rightColumnContent.innerHTML = ''; 
+    originalAnswerOrder.forEach(draggable => {
+        rightColumnContent.appendChild(draggable); 
+        draggable.classList.remove('selected', 'dragging'); 
+        showCheckbox(draggable); 
+        const checkbox = draggable.querySelector('.wrong-flag');
+        if (checkbox) checkbox.checked = false; 
+    });
+    
+    if (selectedAnswer) {
+      selectedAnswer.classList.remove('selected');
+      selectedAnswer = null;
+    }
+
+    document.getElementById("result").innerHTML = ""; 
+  }
+
+  document.getElementById('submitQuizButton').addEventListener('click', submitQuiz);
+  document.getElementById('resetQuizButton').addEventListener('click', resetQuiz);
+
+  document.querySelectorAll('.drop-target').forEach(updateDropTargetState);
+</script>
+<script>
+let pingTimeout;
+let logoutTimer;
+let warningTimer;
+let countdownTimer;
+let lastPing = 0;
+
+const INACTIVITY_LIMIT = 15 * 60 * 1000; // 15 minutes
+const WARNING_BEFORE_LOGOUT = 30 * 1000; // 30 seconds
+const warningBox = document.getElementById("warningBox");
+const countdownEl = document.getElementById("countdown");
+
+function sendPing() {
+    const now = Date.now();
+    if (now - lastPing < 10000) return; 
+    lastPing = now;
+    fetch("/ping").catch(() => {});
+}
+
+function resetTimers() {
+    clearTimeout(pingTimeout);
+    clearTimeout(logoutTimer);
+    clearTimeout(warningTimer);
+    clearInterval(countdownTimer);
+
+    warningBox.style.display = "none"; // 🟡 hide warning if active again
+
+    sendPing();
+    pingTimeout = setTimeout(sendPing, 60 * 1000);
+
+    // Show warning 30s before logout
+    warningTimer = setTimeout(() => {
+        let remaining = 30;
+        warningBox.style.display = "block";
+        countdownEl.textContent = remaining;
+
+        countdownTimer = setInterval(() => {
+            remaining--;
+            countdownEl.textContent = remaining;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+            }
+        }, 1000);
+    }, INACTIVITY_LIMIT - WARNING_BEFORE_LOGOUT);
+
+    // Auto logout
+    logoutTimer = setTimeout(() => {
+        fetch("/logout", { method: "POST" })
+          .then(() => window.location.href = "/");
+    }, INACTIVITY_LIMIT);
+}
+
+// Events
+["mousemove", "keydown", "scroll", "click", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, resetTimers);
+});
+
+window.addEventListener("pageshow", sendPing);
+window.addEventListener("beforeunload", sendPing);
+
+resetTimers();
+</script>
+</body></html>
